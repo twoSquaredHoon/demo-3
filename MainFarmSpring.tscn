@@ -4,7 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://dm5dnwrousqvu" path="res://assets/MainFarm/SpringGround.png" id="2_7p80s"]
 [ext_resource type="Texture2D" uid="uid://c3pe1narh5sec" path="res://assets/MainFarm/SummerGround.png" id="3_aiorf"]
 [ext_resource type="Texture2D" uid="uid://dba3ekysjva11" path="res://assets/MainFarm/WinterGround.png" id="4_pq2r8"]
-
+[ext_resource type="Script" uid="uid://f3plem6ftesb" path="res://locations/location_info.gd" id="5_loc"]
+[ext_resource type="PackedScene" path="res://player/player.tscn" id="6_player"]
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ojooe"]
 texture = ExtResource("1_iiyay")
 0:0/0 = 0
@@ -62,6 +63,8 @@ sources/2 = SubResource("TileSetAtlasSource_m4ale")
 sources/3 = SubResource("TileSetAtlasSource_j8fnd")
 
 [node name="Node2D" type="Node2D" unique_id=992960240]
+script = ExtResource("5_loc")
+display_name = "Spring Farm"
 
 [node name="TileMap" type="TileMap" parent="." unique_id=615233527]
 texture_filter = 1
@@ -74,4 +77,5 @@ layer_1/tile_data = PackedInt32Array(458782, 196609, 805306368, 524318, 196609, 
 layer_2/name = "Foliage2"
 layer_2/tile_data = PackedInt32Array(1966110, 196609, 1610612736, 1966081, 196609, 1610612736, 458782, 196609, 1342177280, 458753, 196609, 1342177280)
 
-[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1906257241]
+[node name="Player" parent="." instance=ExtResource("6_player")]
+position = Vector2(256, 256)

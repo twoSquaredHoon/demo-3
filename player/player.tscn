@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dmk3mu21n4phd" path="res://player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://farming/tile_targeter.gd" id="2_targeter"]
+[ext_resource type="Script" path="res://player/tool_use.gd" id="3_tool"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(16, 32)
@@ -25,3 +26,6 @@ position_smoothing_speed = 8.0
 
 [node name="TileTargeter" type="Node2D" parent="."]
 script = ExtResource("2_targeter")
+
+[node name="ToolUse" type="Node" parent="."]
+script = ExtResource("3_tool")

@@ -3,9 +3,13 @@
 [ext_resource type="Script" uid="uid://dmk3mu21n4phd" path="res://player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://farming/tile_targeter.gd" id="2_targeter"]
 [ext_resource type="Script" path="res://player/tool_use.gd" id="3_tool"]
+[ext_resource type="Script" path="res://player/interactor.gd" id="4_interactor"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(16, 32)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interact"]
+radius = 28.0
 
 [node name="Player" type="CharacterBody2D"]
 collision_layer = 1
@@ -29,3 +33,12 @@ script = ExtResource("2_targeter")
 
 [node name="ToolUse" type="Node" parent="."]
 script = ExtResource("3_tool")
+
+[node name="Interactor" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+monitorable = false
+script = ExtResource("4_interactor")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Interactor"]
+shape = SubResource("CircleShape2D_interact")

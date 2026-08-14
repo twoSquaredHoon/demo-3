@@ -18,16 +18,17 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed("interact"):
+	if Inventory.is_menu_open:
 		return
-	var target := get_nearest()
-	if target == null:
-		return
-	var actor := get_parent()
-	if not target.can_interact(actor):
-		return
-	target.interact(actor)
-	get_viewport().set_input_as_handled()
+	if event.is_action_pressed("interact"):
+		var target := get_nearest()
+		if target == null:
+			return
+		var actor := get_parent()
+		if not target.can_interact(actor):
+			return
+		target.interact(actor)
+		get_viewport().set_input_as_handled()
 
 
 func get_nearest() -> Area2D:

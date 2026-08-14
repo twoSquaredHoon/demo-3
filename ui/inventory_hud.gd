@@ -1,106 +1,99 @@
 extends CanvasLayer
 
-const SLOT_SIZE := Vector2(52, 56)
+const SlotScript := preload("res://ui/inventory_slot.gd")
 
-@onready var slots_row: HBoxContainer = %SlotsRow
+const HOTSLOT_SIZE := Vector2(52, 56)
+const INVENTORY_SLOT_SIZE := Vector2(60, 64)
 
-var _slot_roots: Array[Control] = []
-var _slot_panels: Array[Panel] = []
-var _slot_icons: Array[ColorRect] = []
-var _slot_labels: Array[Label] = []
+@onready var hotslots_row: HBoxContainer = %HotslotsRow
+@onready var inventory_grid: GridContainer = %InventoryGrid
+@onready var inventory_menu: Control = %InventoryMenu
+
+var _hotslots: Array[Panel] = []
+var _inventory_slots: Array[Panel] = []
 
 
 func _ready() -> void:
-	_build_slots()
+	_style_menu_panel()
+	inventory_grid.columns = Inventory.INVENTORY_COLUMNS
+	_build_slots(hotslots_row, Inventory.KIND_HOTSLOT, HOTSLOT_SIZE, true, _hotslots)
+	_build_slots(inventory_grid, Inventory.KIND_INVENTORY, INVENTORY_SLOT_SIZE, false, _inventory_slots)
+	inventory_menu.visible = false
 	Inventory.inventory_changed.connect(_refresh)
 	Inventory.selection_changed.connect(_on_selection_changed)
 	_refresh()
-	_on_selection_changed(Inventory.selected_slot)
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	for i in Inventory.SLOT_COUNT:
+	if event.is_action_pressed("open_inventory") and not Inventory.is_menu_open:
+		_open_menu()
+		get_viewport().set_input_as_handled()
+		return
+
+	if event.is_action_pressed("close_inventory") and Inventory.is_menu_open:
+		_close_menu()
+		get_viewport().set_input_as_handled()
+		return
+
+	for i in Inventory.HOTSLOT_COUNT:
 		if event.is_action_pressed("hotbar_%d" % (i + 1)):
-			Inventory.select_slot(i)
+			Inventory.select_hotslot(i)
 			get_viewport().set_input_as_handled()
 			return
 
 
-func _build_slots() -> void:
-	for child in slots_row.get_children():
+func _open_menu() -> void:
+	inventory_menu.visible = true
+	Inventory.set_menu_open(true)
+	_refresh()
+
+
+func _close_menu() -> void:
+	inventory_menu.visible = false
+	Inventory.set_menu_open(false)
+
+
+func _build_slots(
+	parent: Container,
+	kind: String,
+	slot_size: Vector2,
+	show_index: bool,
+	out_slots: Array[Panel]
+) -> void:
+	for child in parent.get_children():
 		child.queue_free()
-	_slot_roots.clear()
-	_slot_panels.clear()
-	_slot_icons.clear()
-	_slot_labels.clear()
+	out_slots.clear()
 
-	for i in Inventory.SLOT_COUNT:
-		var root := Control.new()
-		root.custom_minimum_size = SLOT_SIZE
-
-		var panel := Panel.new()
-		panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color(0.08, 0.08, 0.1, 0.85)
-		style.border_color = Color(0.55, 0.55, 0.6, 1.0)
-		style.set_border_width_all(2)
-		style.set_corner_radius_all(4)
-		panel.add_theme_stylebox_override("panel", style)
-		root.add_child(panel)
-
-		var content := VBoxContainer.new()
-		content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		content.offset_left = 6
-		content.offset_top = 14
-		content.offset_right = -6
-		content.offset_bottom = -6
-		content.alignment = BoxContainer.ALIGNMENT_CENTER
-		root.add_child(content)
-
-		var icon := ColorRect.new()
-		icon.custom_minimum_size = Vector2(28, 18)
-		icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		icon.color = Color(0.2, 0.2, 0.2, 0.5)
-		content.add_child(icon)
-
-		var label := Label.new()
-		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		label.add_theme_font_size_override("font_size", 11)
-		label.text = ""
-		content.add_child(label)
-
-		var index_label := Label.new()
-		index_label.text = str(i + 1)
-		index_label.add_theme_font_size_override("font_size", 10)
-		index_label.add_theme_color_override("font_color", Color(0.75, 0.75, 0.8, 1))
-		index_label.position = Vector2(5, 2)
-		root.add_child(index_label)
-
-		slots_row.add_child(root)
-		_slot_roots.append(root)
-		_slot_panels.append(panel)
-		_slot_icons.append(icon)
-		_slot_labels.append(label)
+	for i in Inventory.slot_count(kind):
+		var slot: Panel = SlotScript.new()
+		parent.add_child(slot)
+		slot.configure(kind, i, slot_size, show_index)
+		out_slots.append(slot)
 
 
 func _refresh() -> void:
-	for i in Inventory.SLOT_COUNT:
-		var item_id := Inventory.slots[i]
-		_slot_labels[i].text = Inventory.item_display_name(item_id)
-		_slot_icons[i].color = Inventory.item_color(item_id)
-		_slot_icons[i].visible = item_id != Inventory.ITEM_NONE
-	_on_selection_changed(Inventory.selected_slot)
+	for slot in _hotslots:
+		slot.refresh()
+	for slot in _inventory_slots:
+		slot.refresh()
 
 
-func _on_selection_changed(slot_index: int) -> void:
-	for i in _slot_panels.size():
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color(0.08, 0.08, 0.1, 0.85)
-		style.set_corner_radius_all(4)
-		if i == slot_index:
-			style.border_color = Color(0.95, 0.85, 0.35, 1.0)
-			style.set_border_width_all(3)
-		else:
-			style.border_color = Color(0.55, 0.55, 0.6, 1.0)
-			style.set_border_width_all(2)
-		_slot_panels[i].add_theme_stylebox_override("panel", style)
+func _on_selection_changed(_hotslot_index: int) -> void:
+	for slot in _hotslots:
+		slot.refresh()
+
+
+func _style_menu_panel() -> void:
+	var panel := inventory_menu.get_node_or_null("CenterContainer/Panel") as PanelContainer
+	if panel == null:
+		return
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.1, 0.1, 0.14, 0.96)
+	style.border_color = Color(0.65, 0.65, 0.7, 1.0)
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(8)
+	style.content_margin_left = 4
+	style.content_margin_top = 4
+	style.content_margin_right = 4
+	style.content_margin_bottom = 4
+	panel.add_theme_stylebox_override("panel", style)

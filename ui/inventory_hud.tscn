@@ -6,7 +6,77 @@
 layer = 11
 script = ExtResource("1_hud")
 
-[node name="MarginContainer" type="MarginContainer" parent="."]
+[node name="InventoryMenu" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Dim" type="ColorRect" parent="InventoryMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.5)
+
+[node name="CenterContainer" type="CenterContainer" parent="InventoryMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = -84.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Panel" type="PanelContainer" parent="InventoryMenu/CenterContainer"]
+custom_minimum_size = Vector2(420, 300)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="InventoryMenu/CenterContainer/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="InventoryMenu/CenterContainer/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Title" type="Label" parent="InventoryMenu/CenterContainer/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Inventory"
+horizontal_alignment = 1
+
+[node name="Hint" type="Label" parent="InventoryMenu/CenterContainer/Panel/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_font_sizes/font_size = 12
+text = "Drag items between inventory and hotslots    Esc to close"
+horizontal_alignment = 1
+
+[node name="GridCenter" type="CenterContainer" parent="InventoryMenu/CenterContainer/Panel/Margin/VBox"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="InventoryGrid" type="GridContainer" parent="InventoryMenu/CenterContainer/Panel/Margin/VBox/GridCenter"]
+unique_name_in_owner = true
+layout_mode = 2
+columns = 5
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="HotbarMargin" type="MarginContainer" parent="."]
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
@@ -14,15 +84,18 @@ anchor_bottom = 1.0
 offset_top = -84.0
 grow_horizontal = 2
 grow_vertical = 0
+mouse_filter = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 
-[node name="Center" type="CenterContainer" parent="MarginContainer"]
+[node name="Center" type="CenterContainer" parent="HotbarMargin"]
 layout_mode = 2
+mouse_filter = 2
 
-[node name="SlotsRow" type="HBoxContainer" parent="MarginContainer/Center"]
+[node name="HotslotsRow" type="HBoxContainer" parent="HotbarMargin/Center"]
 unique_name_in_owner = true
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 8

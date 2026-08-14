@@ -51,6 +51,8 @@ func format_date() -> String:
 
 
 func sleep_to_next_morning(wake_hour: int = 6) -> void:
+	# One calendar tick via _advance_day (date_changed → Soil growth/water reset),
+	# then snap the clock to morning. Do not emit date_changed again here.
 	_accumulator = 0.0
 	_advance_day()
 	hour = clampi(wake_hour, 0, 23)

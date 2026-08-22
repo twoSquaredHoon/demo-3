@@ -1,7 +1,30 @@
 extends Node2D
 
-## Highlights the mouse-aimed farm tile when it is within reach of the
-## player's upper 16x16 body portion.
+## Child of the Player (see player/player.tscn: Player → TileTargeter).
+## Every frame, figures out which farm tile the mouse is over, whether that
+## tile is within the player's reach, and draws a translucent highlight when
+## it is. This is purely a targeting/aiming helper — it never mutates farm
+## state itself.
+##
+## Consumers of this node's public state:
+##   - `player/tool_use.gd` reads `has_target` and `targeted_cell` on
+##     left-click to know which cell to till/water/plant.
+##   - `player/interactor.gd` (right-click / "interact") does NOT use this
+##     node at all — interaction targeting is proximity-based (nearest
+##     overlapping Area2D), not cursor-based. So left-click tool use is
+##     cursor-aimed via this script, while right-click interaction is
+##     aimed by player position instead. See GAME_SYSTEMS_SUMMARY.md
+##     sections 9 and 15 for this split.
+##
+## target_changed is emitted whenever has_target/targeted_cell actually
+## change, but nothing currently subscribes to it (see GAME_SYSTEMS_SUMMARY.md
+## section 25, "Emitted but unused") — reserved for e.g. a future cursor/
+## crosshair UI reacting to aim state without polling every frame.
+##
+## KNOWN LIMITATION: the player's 16x32 body rectangle is hardcoded again in
+## _get_body_rect_global() below, duplicating the collision shape defined on
+## Player in player.tscn. If the player's collision size ever changes, this
+## must be updated to match by hand.
 
 signal target_changed(has_target: bool, cell: Vector2i)
 
@@ -13,6 +36,9 @@ var targeted_cell: Vector2i = Vector2i.ZERO
 var has_target: bool = false
 
 var _tile_map: TileMap
+## Runtime-created highlight polygon, reparented onto the TileMap itself
+## (not this node) so its z-index (10) sorts correctly against Soil's
+## overlays/crops/water marks, which also live under the TileMap.
 var _highlight: Polygon2D
 
 
@@ -33,6 +59,9 @@ func _process(_delta: float) -> void:
 	_update_target()
 
 
+## Finds the single TileMap in the "farm_tilemap" group (see soil.gd, which
+## resolves the exact same group independently) and parents the highlight
+## polygon under it.
 func _resolve_tile_map() -> void:
 	_tile_map = get_tree().get_first_node_in_group("farm_tilemap") as TileMap
 	if _tile_map == null:
@@ -55,6 +84,9 @@ func _update_target() -> void:
 	_set_target(cell)
 
 
+## "Farmable" currently just means "has any ground-layer tile at all" — see
+## GAME_SYSTEMS_SUMMARY.md section 9: there is no dedicated farmable-cell
+## metadata yet, so every painted ground cell is a legal tilling target.
 func _is_farmable_cell(cell: Vector2i) -> bool:
 	return _tile_map.get_cell_source_id(ground_layer, cell) != -1
 
@@ -64,8 +96,12 @@ func _is_cell_in_reach(cell: Vector2i) -> bool:
 	return _distance_to_reach_rect(cell_center) <= reach_radius
 
 
+## Distance from a point to the closest edge/corner of the player's body
+## rectangle (not to its center) — this is what lets tiles directly beside
+## the player register as in-reach even though the player origin itself may
+## be farther than reach_radius away.
 func _distance_to_reach_rect(point: Vector2) -> float:
-	var rect := _get_upper_body_rect_global()
+	var rect := _get_body_rect_global()
 	var closest := Vector2(
 		clampf(point.x, rect.position.x, rect.end.x),
 		clampf(point.y, rect.position.y, rect.end.y)
@@ -73,11 +109,14 @@ func _distance_to_reach_rect(point: Vector2) -> float:
 	return point.distance_to(closest)
 
 
-func _get_upper_body_rect_global() -> Rect2:
-	# Player body is 16x32 centered on Player origin; upper half is 16x16.
+func _get_body_rect_global() -> Rect2:
+	# Player body is 16x32 centered on Player origin. Reach is measured only
+	# from the UPPER 16x16 half of that rect (see the -16 y-offset with a
+	# 32-tall size below being anchored at the top), matching where the
+	# player's "hands" would plausibly reach.
 	var player := get_parent() as Node2D
 	var origin := player.global_position if player else global_position
-	return Rect2(origin + Vector2(-8, -16), Vector2(16, 16))
+	return Rect2(origin + Vector2(-8, -16), Vector2(16, 32))
 
 
 func _set_target(cell: Vector2i) -> void:
@@ -97,6 +136,8 @@ func _set_target(cell: Vector2i) -> void:
 	_highlight.color = highlight_color
 	_highlight.visible = true
 
+	# Only emit when something actually changed, so consumers (if any are
+	# ever added) don't get spammed every single frame the mouse holds still.
 	if changed:
 		target_changed.emit(true, cell)
 

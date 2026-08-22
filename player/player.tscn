@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dmk3mu21n4phd" path="res://player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://farming/tile_targeter.gd" id="2_targeter"]
 [ext_resource type="Script" path="res://player/tool_use.gd" id="3_tool"]
+[ext_resource type="Script" path="res://player/furniture_placer.gd" id="5_furniture"]
 [ext_resource type="Script" path="res://player/interactor.gd" id="4_interactor"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
@@ -33,6 +34,9 @@ script = ExtResource("2_targeter")
 
 [node name="ToolUse" type="Node" parent="."]
 script = ExtResource("3_tool")
+
+[node name="FurniturePlacer" type="Node2D" parent="."]
+script = ExtResource("5_furniture")
 
 [node name="Interactor" type="Area2D" parent="."]
 collision_layer = 0

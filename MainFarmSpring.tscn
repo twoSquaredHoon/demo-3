@@ -6,7 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://dba3ekysjva11" path="res://assets/MainFarm/WinterGround.png" id="4_pq2r8"]
 [ext_resource type="Script" uid="uid://f3plem6ftesb" path="res://locations/location_info.gd" id="5_loc"]
 [ext_resource type="PackedScene" path="res://player/player.tscn" id="6_player"]
-[ext_resource type="PackedScene" path="res://interactables/bed/bed.tscn" id="7_bed"]
+[ext_resource type="Script" path="res://locations/seasonal_farm_tiles.gd" id="8_seasons"]
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_ojooe"]
 texture = ExtResource("1_iiyay")
 0:0/0 = 0
@@ -67,6 +67,9 @@ sources/3 = SubResource("TileSetAtlasSource_j8fnd")
 script = ExtResource("5_loc")
 display_name = "Spring Farm"
 
+[node name="SeasonalFarmTiles" type="Node" parent="."]
+script = ExtResource("8_seasons")
+
 [node name="TileMap" type="TileMap" parent="." unique_id=615233527 groups=["farm_tilemap"]]
 texture_filter = 1
 tile_set = SubResource("TileSet_m6w26")
@@ -80,6 +83,3 @@ layer_2/tile_data = PackedInt32Array(1966110, 196609, 1610612736, 1966081, 19660
 
 [node name="Player" parent="." instance=ExtResource("6_player")]
 position = Vector2(256, 256)
-
-[node name="Bed" parent="." instance=ExtResource("7_bed")]
-position = Vector2(304, 256)

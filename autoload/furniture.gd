@@ -18,13 +18,19 @@ extends Node
 ##   - `player/tool_use.gd` routes left-click here (via furniture_placer)
 ##     instead of the farming dispatch whenever the selected item resolves
 ##     through farming/furniture_data.gd.
+##   - `interactables/bed/bed.gd` and
+##     `interactables/furniture/selling_box/selling_box.gd` call pickup()
+##     when right-click should reposition furniture into inventory.
 
 signal furniture_changed
 
 const Furn := preload("res://farming/furniture_data.gd")
+const META_ITEM_ID := "furniture_item_id"
+const META_ANCHOR := "furniture_anchor"
 
 var _occupied: Dictionary = {} # Vector2i cell -> String furniture id (owner)
 var _placements: Dictionary = {} # Vector2i anchor cell -> Array[Vector2i] occupied cells
+var _nodes: Dictionary = {} # Vector2i anchor cell -> Node2D instance
 
 var _tile_map: TileMap
 var _furniture_root: Node2D
@@ -69,12 +75,54 @@ func place(item_id: String, anchor_cell: Vector2i) -> bool:
 
 	var instance: Node2D = data.scene.instantiate()
 	instance.position = _tile_map.map_to_local(anchor_cell) + _anchor_offset(footprint)
+	instance.set_meta(META_ITEM_ID, data.item_id)
+	instance.set_meta(META_ANCHOR, anchor_cell)
+	if _furniture_root == null or not is_instance_valid(_furniture_root):
+		_rebuild_furniture_root()
+	if _furniture_root == null:
+		push_error("Furniture.place: no furniture root under farm TileMap")
+		instance.free()
+		return false
 	_furniture_root.add_child(instance)
 
 	var cells := _footprint_cells(anchor_cell, footprint)
 	for cell in cells:
 		_occupied[cell] = data.id
 	_placements[anchor_cell] = cells
+	_nodes[anchor_cell] = instance
+
+	furniture_changed.emit()
+	return true
+
+
+## Returns a placed furniture instance to inventory (first empty hotslot,
+## else first empty inventory slot). Clears occupancy and frees the node
+## only after Inventory confirms it can take the item. Called by bed /
+## selling-box interact() when right-click should reposition.
+func pickup(instance: Node) -> bool:
+	if instance == null or not is_instance_valid(instance):
+		return false
+	if not instance.has_meta(META_ITEM_ID) or not instance.has_meta(META_ANCHOR):
+		return false
+
+	var item_id := str(instance.get_meta(META_ITEM_ID))
+	var anchor: Vector2i = instance.get_meta(META_ANCHOR)
+	if item_id.is_empty() or not _placements.has(anchor):
+		return false
+	if _nodes.get(anchor) != instance:
+		return false
+
+	# Capacity first — leave the world object untouched if pockets and
+	# backpack are full (mirrors Soil.harvest()'s transactional order).
+	if not Inventory.try_add_to_first_empty(item_id, 1):
+		return false
+
+	var cells: Array = _placements[anchor]
+	for cell in cells:
+		_occupied.erase(cell)
+	_placements.erase(anchor)
+	_nodes.erase(anchor)
+	instance.queue_free()
 
 	furniture_changed.emit()
 	return true

@@ -23,9 +23,12 @@ extends Node
 ##   - `interactables/bed/bed.gd` calls sleep_to_next_morning() on interact,
 ##     which is the *other* path (besides natural midnight) that can advance
 ##     the calendar.
-##   - `autoload/inventory.gd` writes to GameTime.paused (does not use a
-##     signal) whenever the inventory menu opens/closes, freezing time
-##     without touching the SceneTree's own pause state.
+##   - Pause is a SOURCE SET, not a single boolean write: Inventory and
+##     Dialogue call request_pause("inventory") / request_pause("dialogue")
+##     (and the matching release_pause) so two open UIs cannot stomp each
+##     other. `paused` is true while ANY source is held. This does NOT
+##     pause the SceneTree — it only stops _process() below from ticking
+##     the clock.
 ##
 ## year_changed is emitted but currently has no listener anywhere in the
 ## project (see GAME_SYSTEMS_SUMMARY.md, section 25, "Emitted but unused").
@@ -46,11 +49,15 @@ var season: int = Season.SPRING
 var day: int = 1
 var hour: int = 6
 var minute: int = 0
-## Custom pause flag for this autoload only. Setting this does NOT pause the
-## SceneTree (so movement/animation elsewhere keeps working); it only stops
-## _process() below from ticking the clock forward. Currently the only
-## writer is Inventory, while its menu is open.
-var paused: bool = false
+## True while at least one pause source is held (inventory menu, dialogue,
+## …). Read-only from outside — use request_pause()/release_pause().
+var paused: bool:
+	get:
+		return not _pause_sources.is_empty()
+
+## Keys currently holding a pause. String identity so two systems can
+## overlap without a second open fighting the first closed.
+var _pause_sources: Dictionary = {}
 
 ## Fractional real-time accumulator (in seconds). Frames rarely land exactly
 ## on a 1-second boundary, so leftover time is kept here instead of being
@@ -73,6 +80,16 @@ func _process(delta: float) -> void:
 	while _accumulator >= REAL_SECONDS_PER_GAME_MINUTE:
 		_accumulator -= REAL_SECONDS_PER_GAME_MINUTE
 		_advance_minute()
+
+
+func request_pause(source: String) -> void:
+	if source.is_empty():
+		return
+	_pause_sources[source] = true
+
+
+func release_pause(source: String) -> void:
+	_pause_sources.erase(source)
 
 
 func season_name() -> String:

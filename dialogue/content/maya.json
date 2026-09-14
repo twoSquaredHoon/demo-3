@@ -1,0 +1,46 @@
+{
+  "id": "maya",
+  "display_name": "Maya",
+  "color": "#c47a6a",
+  "start": "greeting",
+  "nodes": {
+    "meet": {
+      "entry": true,
+      "priority": 20,
+      "when": { "flag_not": "maya_met" },
+      "lines": [
+        "You're the new one. Don't wreck the soil.",
+        { "speaker": "You", "text": "I'll try." },
+        "Know how to use a hoe?"
+      ],
+      "choices": [
+        { "text": "I know what I'm doing.", "goto": "meet_confident" },
+        { "text": "Any tips?", "goto": "meet_help" }
+      ]
+    },
+    "meet_confident": {
+      "lines": ["We'll see. Don't come crying when the beans wilt."],
+      "set_flags": ["maya_met"]
+    },
+    "meet_help": {
+      "lines": [
+        "Till, plant, water, sleep. Miss a watering and they just sit there.",
+        "Talk to me if you forget. I live here."
+      ],
+      "set_flags": ["maya_met"]
+    },
+    "greeting": {
+      "entry": true,
+      "priority": 1,
+      "when": { "flag": "maya_met" },
+      "lines": ["Crops still alive?"],
+      "choices": []
+    },
+    "night": {
+      "entry": true,
+      "priority": 10,
+      "when": { "flag": "maya_met", "hour_from": 20, "hour_to": 5 },
+      "lines": ["Go to bed. The soil isn't going anywhere."]
+    }
+  }
+}

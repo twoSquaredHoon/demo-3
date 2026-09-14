@@ -1,11 +1,7 @@
 extends Area2D
 
-## Base class for every right-click-able world object (bed, crop, and any
-## future furniture/machine). Nothing in this project instances this script
-## directly — `interactables/bed/bed.gd` and
-## `interactables/crop/crop_plant.gd` both `extends "res://interactables/interactable.gd"`
-## and override interact() (and, for crops, can_interact()) to add their own
-## behavior on top of this shared contract.
+## Base class for world objects the player can left-click (bed, crop, NPC,
+## furniture). Subclasses override interact() / can_interact().
 ##
 ## The shared contract every subclass gets for free:
 ##   - Added to the "interactable" group in _ready(), which is exactly what

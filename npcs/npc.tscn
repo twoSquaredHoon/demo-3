@@ -1,0 +1,45 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://npcs/npc.gd" id="1_npc"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_interact"]
+size = Vector2(16, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
+size = Vector2(16, 32)
+
+[node name="Npc" type="Area2D"]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+monitorable = true
+script = ExtResource("1_npc")
+
+[node name="InteractionShape" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_interact")
+
+[node name="Body" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Body"]
+shape = SubResource("RectangleShape2D_body")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="BodyShape" type="Polygon2D" parent="Visual"]
+color = Color(0.7, 0.55, 0.45, 1)
+polygon = PackedVector2Array(-8, -16, 8, -16, 8, 16, -8, 16)
+
+[node name="NameLabel" type="Label" parent="Visual"]
+offset_left = -24.0
+offset_top = -32.0
+offset_right = 24.0
+offset_bottom = -18.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 10
+text = "NPC"
+horizontal_alignment = 1
+vertical_alignment = 1

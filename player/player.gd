@@ -23,11 +23,8 @@ extends CharacterBody2D
 
 
 func _physics_process(_delta: float) -> void:
-	# While the inventory popup is open, freeze movement entirely rather
-	# than just ignoring input — this guarantees the player can't drift
-	# from residual velocity while browsing items (Inventory.is_menu_open
-	# is the same flag ToolUse and Interactor check before acting).
-	if Inventory.is_menu_open:
+	# Inventory, dialogue, and confirm all hold a GameTime pause source.
+	if GameTime.paused:
 		velocity = Vector2.ZERO
 		move_and_slide()
 		return

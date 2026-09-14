@@ -62,7 +62,7 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
 theme_override_font_sizes/font_size = 12
-text = "Drag items between inventory and hotslots    Esc to close"
+text = "Drag or right-click to move between inventory and hotslots    Esc to close"
 horizontal_alignment = 1
 
 [node name="GridCenter" type="CenterContainer" parent="InventoryMenu/CenterContainer/Panel/Margin/VBox"]

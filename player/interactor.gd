@@ -1,20 +1,21 @@
 extends Area2D
 
-## Child of Player (player/player.tscn: Player → Interactor), the RIGHT-
-## CLICK half of the input split described in GAME_SYSTEMS_SUMMARY.md
-## section 4: left-click always means "use the selected tool/seed" (see
-## player/tool_use.gd), right-click always means "interact with the
-## nearest world object" (bed, mature crops — anything extending
-## interactables/interactable.gd).
+## Child of Player (player/player.tscn: Player → Interactor).
+##
+## Left-click (`interact`): use the nearest world object (bed sleep, harvest,
+## talk, selling box, …) via interact().
+## Right-click (`use_item`): if the nearest object implements
+## interact_pickup() (currently the bed), pick it up; otherwise leave the
+## event for ToolUse (tools / seeds / furniture place).
 ##
 ## This is a circular Area2D (radius 28, see player.tscn) on physics layer
 ## 0 / mask 2, so it only ever detects OTHER Area2Ds on layer 2 — which is
 ## exactly the layer every interactable base object sets itself to in
 ## `interactables/interactable.gd`'s _ready(). It maintains a running list
 ## of everything currently overlapping (_in_range) via area_entered/
-## area_exited, so right-click doesn't need to re-scan physics each time.
+## area_exited, so interact doesn't need to re-scan physics each time.
 ##
-## Selection is proximity, not aim: right-clicking picks whichever eligible
+## Selection is proximity, not aim: interacting picks whichever eligible
 ## overlapping object is CLOSEST to the player's origin — it does not care
 ## where the mouse cursor is. Contrast with TileTargeter (farming/
 ## tile_targeter.gd), which IS cursor-aimed but only for farming tools.
@@ -35,9 +36,7 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Same guard as ToolUse and player.gd: the popup inventory freezes all
-	# world interaction, not just movement.
-	if Inventory.is_menu_open:
+	if GameTime.paused:
 		return
 	if event.is_action_pressed("interact"):
 		var target := get_nearest()
@@ -48,8 +47,24 @@ func _unhandled_input(event: InputEvent) -> void:
 			return
 		target.interact(actor)
 		# Only consume the click if an object was actually used, so a stray
-		# right-click with nothing in range doesn't swallow input other
+		# interact with nothing in range doesn't swallow input other
 		# systems might otherwise want.
+		get_viewport().set_input_as_handled()
+		return
+	# Right-click: pick up objects that opt in via interact_pickup()
+	# (bed, empty hand only). Otherwise do not mark handled — ToolUse
+	# places/tools.
+	if event.is_action_pressed("use_item"):
+		var target := get_nearest()
+		if target == null or not target.has_method("interact_pickup"):
+			return
+		var actor := get_parent()
+		if target.has_method("can_interact_pickup"):
+			if not target.can_interact_pickup(actor):
+				return
+		elif target.has_method("can_interact") and not target.can_interact(actor):
+			return
+		target.interact_pickup(actor)
 		get_viewport().set_input_as_handled()
 
 

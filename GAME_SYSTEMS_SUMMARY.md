@@ -42,7 +42,7 @@ There is currently no:
 - Audio system.
 - Animation system.
 - Scene transition system.
-- Economy, shop, quest, NPC, dialogue, stamina, or combat system.
+- Shop, quest, stamina, or combat system.
 
 ## 3. Autoload Order and Responsibilities
 
@@ -51,9 +51,13 @@ Autoloads load in this order:
 1. `GameState` — `autoload/game_state.gd`
 2. `GameTime` — `autoload/game_time.gd`
 3. `Inventory` — `autoload/inventory.gd`
-4. `Soil` — `autoload/soil.gd`
-5. `LocationHud` — `ui/location_hud.tscn`
-6. `InventoryHud` — `ui/inventory_hud.tscn`
+4. `Wallet` — `autoload/wallet.gd`
+5. `Soil` — `autoload/soil.gd`
+6. `Furniture` — `autoload/furniture.gd`
+7. `Dialogue` — `autoload/dialogue.gd`
+8. `LocationHud` — `ui/location_hud.tscn`
+9. `InventoryHud` — `ui/inventory_hud.tscn`
+10. `DialogueHud` — `ui/dialogue_hud.tscn`
 
 ### GameState
 
@@ -117,10 +121,13 @@ Sleep:
 
 Pause:
 
-- `GameTime.paused` is a custom boolean.
+- `GameTime.paused` is true while any named pause source is held.
+- `request_pause(source)` / `release_pause(source)` add and remove sources.
+- Inventory uses `"inventory"`; Dialogue uses `"dialogue"`; ConfirmHud uses `"confirm"`.
 - It stops only the time autoload.
 - It does not pause the SceneTree.
-- The inventory menu controls this flag.
+- World movement, tools, interact, and furniture preview freeze on `GameTime.paused`.
+- Inventory HUD still checks `Dialogue.is_open` / `ConfirmHud.is_open` so Escape can close the backpack while time is paused.
 
 Missing time features:
 
@@ -136,7 +143,7 @@ Missing time features:
 
 ### Inventory
 
-Owns all hotslot and inventory stack state, selection state, inventory-menu state, item IDs, stack operations, and current placeholder item presentation.
+Owns all hotslot and inventory stack state, selection state, inventory-menu state, item IDs, and stack operations. Placeholder item names and colors live in `inventory/item_data.gd` (`ItemData`).
 
 ### Soil
 
@@ -157,8 +164,8 @@ Movement:
 
 World actions:
 
-- Left mouse: `use_item`.
-- Right mouse: `interact`.
+- Left mouse: `interact` (nearest interactable).
+- Right mouse: `use_item` (selected tool / seed / furniture place).
 
 Inventory:
 
@@ -166,12 +173,18 @@ Inventory:
 - `Escape`: close inventory.
 - `1` through `5`: select hotslots.
 
+Dialogue (while a conversation is open):
+
+- Left-click or Space / `ui_accept`: advance one line.
+- Choice buttons: pick a reply.
+- `E`, tools, movement, and interact are ignored until the talk ends.
+
 Current input separation:
 
-- Left-click is exclusively for the selected farming tool or seed.
-- Right-click is exclusively for the interactable-object system.
-- Mature crops are interactable objects, so harvesting is right-click.
-- Bed interaction is also right-click.
+- Left-click is exclusively for the interactable-object system (bed, crops, NPCs, selling box).
+- Right-click is exclusively for the selected farming tool, seed, or furniture item.
+- Mature crops are interactable objects, so harvesting is left-click.
+- Bed interaction is also left-click (sleep asks ConfirmHud first; empty hand picks up).
 - `E` does not toggle inventory closed; only Escape closes it.
 
 Input limitations:
@@ -198,11 +211,12 @@ Tree:
 - `Player`
   - instance of `player/player.tscn`
   - position `(256, 256)`
-- `Bed`
-  - instance of `interactables/bed/bed.tscn`
-  - position `(304, 256)`
+- `Maya` and `Ken`
+  - instances of `npcs/npc.tscn`
+  - positions `(176, 208)` and `(352, 208)`
+  - `npc_id` `maya` / `ken`
 
-The active location label remains `"Spring Farm"` even when the visual season changes.
+The bed is no longer a fixed scene instance; it starts in the backpack as a placeable furniture item. The location label remains `"Spring Farm"` even when the visual season changes.
 
 ## 6. Seasonal Farm Rendering
 
@@ -340,7 +354,7 @@ Movement:
 - Direction comes from `Input.get_vector()`.
 - Diagonal movement is normalized.
 - Uses `move_and_slide()`.
-- Opening inventory sets velocity to zero and blocks movement.
+- `GameTime.paused` sets velocity to zero and blocks movement.
 
 Camera:
 
@@ -418,7 +432,7 @@ Input:
 
 Guards:
 
-- Does nothing while the inventory menu is open.
+- Does nothing while `GameTime.paused` (inventory, dialogue, or confirm).
 - Requires a valid target from `TileTargeter`.
 
 Dispatch:
@@ -719,7 +733,7 @@ Player Interactor:
 
 Right-click:
 
-- Stops if inventory is open.
+- Stops while `GameTime.paused`.
 - Chooses the nearest valid overlapping interactable.
 - Uses squared origin distance.
 - Calls its `interact(player)`.
@@ -744,16 +758,16 @@ Files:
 Interaction:
 
 - Root Area2D.
-- 40×40 interaction shape.
 - Interaction layer 2.
+- Placed via `Furniture.place()` (no fixed MainFarm instance).
+- Left-click (`interact`) → `ConfirmHud.ask("Do you want to sleep until morning?")`; on Yes → `GameTime.sleep_to_next_morning()`.
+- Right-click (`use_item` via `interact_pickup`) → `Furniture.pickup(self)` only when the selected hotslot is empty.
 - Prompt: `"Sleep"`.
-- Right-click calls `GameTime.sleep_to_next_morning()`.
 
 Physical body:
 
 - Child `StaticBody2D`.
 - Collision layer 1.
-- 28×20 collision shape.
 - Blocks the player.
 
 Placeholder visuals:
@@ -763,7 +777,6 @@ Placeholder visuals:
 
 Missing:
 
-- Confirmation.
 - Fade.
 - Sleep animation.
 - Player reposition.
@@ -840,13 +853,22 @@ Drag/drop:
 - Overflow remains in the source.
 - Full matching destination is a no-op.
 
+Right-click quick transfer (menu open only):
+
+- `Inventory.quick_transfer(kind, index)` moves the entire stack to the first empty slot of the opposite container (hotslot ↔ inventory).
+- Does not merge into existing matching stacks; destination must be empty.
+- Empty source or full destination: no-op.
+- World right-click interact remains blocked while the menu is open.
+
+Furniture / world pickup into empty slots:
+
+- `Inventory.try_add_to_first_empty(item_id, amount)` places into the first empty hotslot, else the first empty inventory slot, with no merge.
+- Used by `Furniture.pickup()` when repositioning placed furniture.
+
 Inventory signals:
 
 - `inventory_changed`.
 - `selection_changed(hotslot_index)`.
-- `menu_visibility_changed(is_open)`.
-
-The menu-visibility signal currently has no subscriber.
 
 Limitations:
 
@@ -863,7 +885,16 @@ Limitations:
 
 ## 18. Item Presentation
 
-Current display names and colors are hardcoded in `Inventory` using item-ID matches.
+Display names and placeholder colors live in `inventory/item_data.gd` (`ItemData`). The Inventory HUD reads them through `ItemData.display_name_of()` / `icon_color_of()`. Inventory itself only stores stack `id` and `quantity`.
+
+`ItemData` fields:
+
+- ID (must match `Inventory.ITEM_*`).
+- Display name.
+- Icon color.
+- Static `from_id()` / `make()` factories.
+
+Lookups are still hardcoded `match` statements and allocate a new Resource per call (same pattern as crop data). No `.tres` item assets exist yet.
 
 Placeholder presentation:
 
@@ -873,22 +904,14 @@ Placeholder presentation:
 - Beans Seed: dark green.
 - Rice: pale yellow.
 - Beans: green.
-
-`inventory/item_data.gd` defines an `ItemData` Resource with:
-
-- ID.
-- Display name.
-- Icon color.
-- Static factory.
-
-It is currently unused. The Inventory autoload duplicates those responsibilities.
+- Bed: blue-gray.
+- Selling Box: tan.
 
 Future art cleanup:
 
-- Make ItemData authoritative.
-- Add Texture2D icon references.
+- Add Texture2D icon references on ItemData.
 - Give tools, seeds, and produce per-item stack limits.
-- Remove presentation matches from gameplay Inventory logic.
+- Optionally move factories into `.tres` files.
 
 ## 19. Inventory HUD
 
@@ -935,6 +958,7 @@ Slot behavior:
 - Root Panel catches mouse input.
 - Child labels/icons ignore mouse input.
 - Left-click hotslot selects.
+- Right-click (menu open only) quick-transfers the whole stack to the first empty opposite-container slot.
 - Dragging starts only from nonempty slots.
 - Drag preview is a colored 40×30 Panel.
 - Drops call Inventory stack movement.
@@ -990,7 +1014,7 @@ TileSet maps currently contain no physics layers or collision polygons. Therefor
 - Ground does not block movement.
 - Foliage does not block movement.
 - Map edges do not block movement.
-- Only explicit solid objects, currently the bed, block movement.
+- Only explicit solid objects (placed bed, NPCs, other furniture with bodies) block movement.
 
 ## 21. Render and UI Layers
 
@@ -999,6 +1023,7 @@ Canvas layers:
 - World: canvas layer 0.
 - Location/date/time HUD: canvas layer 10.
 - Inventory/hotslots: canvas layer 11.
+- Dialogue: canvas layer 12.
 
 World z-index:
 
@@ -1050,7 +1075,7 @@ Needs a cleanup adapter before final art:
 - Soil overlays are constructed directly in Soil logic.
 - Water marks are constructed directly in Soil logic.
 - Tile target highlight is constructed in targeting logic.
-- Inventory icons, names, and colors are hardcoded in Inventory.
+- Inventory icons, names, and colors are hardcoded in ItemData.
 - Crop script knows exact Sprout and StageLabel nodes.
 - Target reach knows exact player placeholder dimensions.
 - Numeric physics layers are duplicated.
@@ -1059,7 +1084,7 @@ Intended direction:
 
 - Add dedicated visual children/controllers with methods such as `set_stage()` and `play_state()`.
 - Keep Soil authoritative but move rendering to a SoilVisual helper or scene.
-- Move item presentation into ItemData Resources.
+- Move item presentation textures into ItemData Resources.
 - Move crop presentation/animation references into crop resources.
 - Replace numeric collision constants with named project layers.
 - Keep interaction and collision roots stable while swapping Sprite2D, AnimatedSprite2D, AnimationPlayer, particles, and sounds beneath them.
@@ -1104,7 +1129,8 @@ Intended direction:
 - Press E.
 - Time, movement, tool use, and interaction stop.
 - Drag stacks between normal inventory and hotslots.
-- Matching stacks merge to 99.
+- Right-click a stack to move it to the first empty opposite-container slot (whole stack, no merge).
+- Matching stacks merge to 99 when dragged.
 - Different stacks swap.
 - Click a hotslot or press 1–5 to select.
 - Press Escape to resume.
@@ -1130,14 +1156,11 @@ Consumed:
 Emitted but unused:
 
 - `GameTime.year_changed`.
-- `Inventory.menu_visibility_changed`.
 - `TileTargeter.target_changed`.
 
 API currently unused:
 
 - `Interactable.get_interact_prompt()`.
-- `Inventory.get_selected_quantity()`.
-- `ItemData.make()`.
 
 ## 26. Known Architecture Risks
 
@@ -1152,13 +1175,14 @@ Highest-priority risks:
 7. Crop z-index is effectively doubled.
 8. Display-only Location HUD may block world mouse input.
 9. Interaction is nearest-by-proximity, not cursor-targeted.
-10. Inventory pause can overwrite future pause reasons because it directly sets one boolean.
-11. Inventory presentation remains in gameplay logic.
+10. Dialogue flags and wallet/soil/furniture state are memory-only (no save).
+11. Inventory presentation remains hardcoded match statements in ItemData (no `.tres` icons yet).
 12. Soil still constructs permanent placeholder visuals.
 13. Crop factories are hardcoded and allocate new Resources per lookup.
 14. Public singleton fields allow unvalidated mutation.
 15. Malformed external drag data can trigger invalid inventory operations.
 16. No persistence exists.
+17. **UNRESOLVED (deferred):** Bed / furniture placement after the left-click interact remap — see section 42. Not verified fixed; revisit later.
 
 ## 27. Files by Responsibility
 
@@ -1178,7 +1202,10 @@ Autoload gameplay:
 - `autoload/game_state.gd`
 - `autoload/game_time.gd`
 - `autoload/inventory.gd`
+- `autoload/wallet.gd`
 - `autoload/soil.gd`
+- `autoload/furniture.gd`
+- `autoload/dialogue.gd`
 
 Player:
 
@@ -1186,12 +1213,14 @@ Player:
 - `player/player.gd`
 - `player/tool_use.gd`
 - `player/interactor.gd`
+- `player/furniture_placer.gd`
 - `player.tscn` — unused legacy stub.
 
 Farming:
 
 - `farming/tile_targeter.gd`
 - `farming/crop_data.gd`
+- `farming/furniture_data.gd`
 
 Interactables:
 
@@ -1200,10 +1229,21 @@ Interactables:
 - `interactables/bed/bed.tscn`
 - `interactables/crop/crop_plant.gd`
 - `interactables/crop/crop_plant.tscn`
+- `interactables/furniture/selling_box/selling_box.gd`
+- `interactables/furniture/selling_box/selling_box.tscn`
+
+NPCs and dialogue:
+
+- `npcs/npc.gd`
+- `npcs/npc.tscn`
+- `dialogue/dialogue_catalog.gd`
+- `dialogue/FORMAT.md`
+- `dialogue/content/maya.json`
+- `dialogue/content/ken.json`
 
 Inventory:
 
-- `inventory/item_data.gd` — unused future Resource.
+- `inventory/item_data.gd` — display names and placeholder colors.
 
 Locations:
 
@@ -1217,6 +1257,8 @@ UI:
 - `ui/inventory_hud.gd`
 - `ui/inventory_hud.tscn`
 - `ui/inventory_slot.gd`
+- `ui/dialogue_hud.gd`
+- `ui/dialogue_hud.tscn`
 
 Authoring and assets:
 
@@ -1238,12 +1280,12 @@ Every active script has a `.gd.uid` sidecar. Some manually-authored scenes and e
 - Weather and rain watering.
 - Crop season restrictions or seasonal death.
 - Harvest quality, variable yield, crop XP.
-- Selling, buying, money, shops.
+- Selling exists via the Selling Box; there is still no shop that spends gold.
 - Stamina, health, hunger.
 - Tool durability, upgrades, capacity, refill.
 - Stack splitting, sorting, dropping, trashing.
 - Equipment and character stats.
-- NPCs, schedules, dialogue, quests.
+- NPC schedules/pathing, portraits, typewriter, quests, and dialogue item/gold grants.
 - Interaction prompt UI.
 - Cursor-specific object interaction.
 - Animation, VFX, SFX, music.
@@ -1313,9 +1355,13 @@ Ignored/generated directories are documented separately in section 37.
   - `GameState` from `autoload/game_state.gd`.
   - `GameTime` from `autoload/game_time.gd`.
   - `Inventory` from `autoload/inventory.gd`.
+  - `Wallet` from `autoload/wallet.gd`.
   - `Soil` from `autoload/soil.gd`.
+  - `Furniture` from `autoload/furniture.gd`.
+  - `Dialogue` from `autoload/dialogue.gd`.
   - `LocationHud` from `ui/location_hud.tscn`.
   - `InventoryHud` from `ui/inventory_hud.tscn`.
+  - `DialogueHud` from `ui/dialogue_hud.tscn`.
 - Display:
   - 1280×720 base viewport.
   - Fullscreen mode.
@@ -1352,7 +1398,8 @@ Ignored/generated directories are documented separately in section 37.
 - Embeds TileSet atlas definitions for all four seasonal PNGs.
 - Uses Spring source ID 1 for its painted cells.
 - Instances `player/player.tscn` at `(256, 256)`.
-- Instances `interactables/bed/bed.tscn` at `(304, 256)`.
+- Instances `npcs/npc.tscn` twice (`Maya` at `(176, 208)`, `Ken` at `(352, 208)`).
+- The bed is no longer a fixed instance; it is placed from inventory.
 - This is the only seasonal farm file containing complete gameplay objects.
 
 ### `MainFarmSummer.tscn`
@@ -1467,7 +1514,7 @@ Ignored/generated directories are documented separately in section 37.
   - Panel with minimum size 420×300.
   - Inventory title.
   - Five-column `InventoryGrid`.
-  - Drag/Escape hint.
+  - Drag / right-click / Escape hint.
 - Separate `HotbarMargin` after the menu in scene order:
   - Anchored to the bottom 84 pixels.
   - Centered `HotslotsRow`.
@@ -1534,7 +1581,6 @@ Every `.gd.uid` file contains one stable Godot script UID and no gameplay code.
 - Signals:
   - `inventory_changed`.
   - `selection_changed`.
-  - `menu_visibility_changed`.
 - Public arrays:
   - `hotslots`.
   - `items`.
@@ -1544,17 +1590,18 @@ Every `.gd.uid` file contains one stable Godot script UID and no gameplay code.
   - Beans Seed ×10.
   - Watering Can ×1.
   - One empty hotslot.
-  - Twenty empty inventory slots.
+  - Bed ×1 and Selling Box ×1 in backpack slots 0–1.
 - Implements:
-  - Menu-open state and GameTime pause.
+  - Menu-open state and GameTime pause source `"inventory"`.
   - Hotslot selection.
   - Safe item and quantity reads.
   - Selected item and quantity reads.
-  - Atomic item addition to normal inventory.
+  - Atomic item addition (hotslots then inventory; selected hotslot first for empty slots).
+  - First-empty add (furniture pickup, no merge).
   - Item removal.
   - Selected-hotslot removal.
   - Cross-container stack swap/merge.
-  - Placeholder display-name and color lookup.
+  - Menu-only quick transfer.
   - Seed-ID recognition.
   - Internal capacity, stack, container, and stack-construction helpers.
 
@@ -1709,7 +1756,8 @@ Every `.gd.uid` file contains one stable Godot script UID and no gameplay code.
   - Display name.
   - Icon color.
 - Static `make()` factory.
-- Currently unused.
+- Static `from_id()` lookup keyed on `Inventory.ITEM_*`.
+- Static `display_name_of()` / `icon_color_of()` used by the inventory HUD.
 
 ### `inventory/item_data.gd.uid`
 
@@ -1828,7 +1876,7 @@ Every `.gd.uid` file contains one stable Godot script UID and no gameplay code.
   - Name label.
   - Quantity label.
   - Index label.
-- Refresh reads stack data and item presentation from Inventory.
+- Refresh reads stack data from Inventory and presentation from ItemData.
 - Shows quantity only when greater than one.
 - Highlights selected hotslot.
 - Mouse enter/exit updates hover style.
@@ -2169,7 +2217,6 @@ Actively used at runtime:
 Authored but not runtime-used:
 
 - Root `player.tscn`.
-- `inventory/item_data.gd`.
 - All four farm Aseprite source documents.
 - All three player Aseprite source documents.
 - Documentation and Cursor rule, which support development rather than game execution.
@@ -2286,3 +2333,94 @@ Concrete example driving the idea: **summer nights should have cricket/insect (�
 - Extending later to other weather/ambience ideas noted elsewhere in this document (rain, holidays) if a broader environmental-audio system is built, rather than one-off wiring just for crickets.
 
 This has not been implemented; no audio files, `AudioStreamPlayer` nodes, or scripts exist for it yet. It is grouped with "No environmental/ambient audio tied to season or time of day" in section 3 and section 28's not-yet-implemented lists.
+
+## 40. Addendum (2026-09-09) — Dialogue, NPCs, Pause Sources
+
+JSON-driven conversations and generic NPC world objects. Writer files live in `dialogue/content/`; see `dialogue/FORMAT.md`. Gameplay state is flags plus the live session on the `Dialogue` autoload. The HUD only renders. NPCs only forward left-click interact.
+
+### Pause sources
+
+`GameTime.paused` is no longer a writable boolean. Inventory calls `request_pause("inventory")` / `release_pause("inventory")`. Dialogue uses `"dialogue"`. ConfirmHud uses `"confirm"`. Time is paused while any source is held. Movement, tools, interact, and furniture preview freeze on `GameTime.paused`. Opening inventory is blocked while `Dialogue.is_open` or `ConfirmHud.is_open`.
+
+### Dialogue runtime
+
+- `dialogue/dialogue_catalog.gd` scans `res://dialogue/content/*.json`, requires `"id"` to match the filename, and `push_error`s on missing `start`, unknown `when` keys, empty lines, and `goto` targets that are not in the same file.
+- `autoload/dialogue.gd` picks the highest-`priority` `entry` node whose `when` matches (`flag`, `flag_not`, `season`, `hour_from`+`hour_to` wrapping midnight). If none match, it uses `"start"`.
+- Bare-string lines use the NPC `display_name`. `{ "speaker": "You", "text": "..." }` is allowed.
+- Empty `choices` ends the talk after the last line and applies `set_flags`. A choice applies the current node's flags, then `goto`.
+- Flags are booleans in memory only (same as Soil). No save/load.
+- `ui/dialogue_hud.tscn` is CanvasLayer 12. Click or Space / `ui_accept` advances. Choice buttons for replies. No skip-all, no Escape-cancel.
+
+### NPCs
+
+- One PackedScene: `npcs/npc.tscn`, script `npcs/npc.gd`, extends the interactable base.
+- `@export var npc_id` must match a JSON file. Visual child (polygon + name label) reads color/name from the catalog.
+- Solid `StaticBody2D` on collision layer 1, like the bed. Not placed through Furniture.
+- Shipping content: Maya (first-meet branch, repeat greeting, night line 20:00–05:00) and Ken (first-meet branch, repeat greeting, summer-only line).
+
+Adding a talker: new `dialogue/content/<id>.json` + drop `npcs/npc.tscn` and set `npc_id`. Unique art later is a duplicated scene with the same script and id; JSON path does not change.
+
+## 41. Addendum — Furniture Pickup / Reposition
+
+Placed furniture can be returned to inventory for repositioning.
+
+### Interact priority (left-click)
+
+- **Selling box** + sellable produce selected → sell stack (unchanged; no confirm yet).
+- **Selling box** otherwise → `Furniture.pickup(self)`.
+- **Bed** left-click → ConfirmHud, then sleep on Yes.
+- **Bed** right-click + empty selected hotslot → `Furniture.pickup(self)` via `interact_pickup()`.
+- **Bed** right-click with an item selected → no pickup; ToolUse handles the click.
+
+### Furniture autoload
+
+- `place()` stamps `furniture_item_id` / `furniture_anchor` meta and tracks `_nodes[anchor]`.
+- `pickup(instance)` calls `Inventory.try_add_to_first_empty(item_id, 1)` first; on success clears occupancy / placements / nodes and `queue_free()`s the instance. Full pockets and backpack leave the furniture in the world.
+
+### Selling box interactability
+
+- `can_interact()` is now `enabled` always (previously required a sellable selected stack, which blocked pickup).
+- Prompt shows sell text when sellable; otherwise `"Pick up"`.
+
+## 42. Addendum — Interact Left-Click + Sleep Confirm
+
+### Input swap
+
+- `interact` is now **left mouse**.
+- `use_item` is now **right mouse** (tools, seeds, furniture place).
+- This was an intentional remap, not an accidental overwrite of interact.
+
+### ConfirmHud
+
+- Autoload scene `ui/confirm_hud.tscn` (CanvasLayer 13).
+- `ConfirmHud.ask(message, title)` pauses via `GameTime.request_pause("confirm")`, shows Yes/No, Escape cancels.
+- Bed sleep uses it. Selling-box confirmation is deferred until that flow is specified.
+- Bed pickup is right-click (`interact_pickup`), not empty-hand left-click.
+- World actions, inventory open, and dialogue start check `ConfirmHud.is_open`.
+
+### UNRESOLVED — Bed placement after input swap
+
+**Status:** open / deferred (player will return to this later).
+
+After remapping `interact` to left-click and `use_item` to right-click, **placing the bed from the hotbar is unreliable or fails** in play. Partial mitigation was attempted (`ToolUse` also tries furniture place on left-click when nothing is in interact range; `Furniture.place` null-checks the furniture root), but the issue is **not considered fixed**.
+
+Known constraints to re-check when revisiting:
+
+- Bed / Selling Box start in the **backpack**, not a hotslot — they must be dragged into a hotslot before `get_selected_item()` can place them.
+- Placement is driven by `player/furniture_placer.gd` + `Furniture.place()` via `player/tool_use.gd`.
+- Left-click near an interactable still prefers interact (sleep / talk / pickup) over place.
+- Green/red placement preview should appear when furniture is selected; if the preview is missing or always red, start there.
+
+Do not close this note until bed placement is re-verified in-game end-to-end.
+
+## 43. Addendum (2026-09-14) — Inventory / NPC Cleanup
+
+No gameplay-rule changes. Inventory add/merge/swap/quick-transfer and dialogue start/advance/choose behave as before.
+
+- Item names and placeholder colors moved from `Inventory` match statements into `ItemData` (`display_name_of` / `icon_color_of`). HUD reads ItemData; Inventory only stores stacks.
+- Removed unused `Inventory.menu_visibility_changed`.
+- World movement, tools, interact, and furniture preview freeze on `GameTime.paused` instead of repeating the three HUD flags.
+- Inventory HUD still checks `Dialogue.is_open` / `ConfirmHud.is_open` so Escape can close the backpack.
+- NPC interact is left-click. Maya's first-meet tip no longer says "Right-click me."
+- Trimmed leftover comments on the inventory, NPC, and dialogue scripts.
+

@@ -15,7 +15,9 @@ extends Node2D
 ##
 ## This node has no _unhandled_input of its own on purpose: input stays
 ## single-entry through player/tool_use.gd so there is exactly one place
-## that decides what a left-click does.
+## that decides what a place/use click does. Furniture can be placed with
+## right-click (use_item) or left-click (interact) when nothing else is in
+## interact range.
 
 const Furn := preload("res://farming/furniture_data.gd")
 
@@ -56,6 +58,10 @@ func try_place() -> bool:
 
 
 func _update_preview() -> void:
+	if GameTime.paused:
+		_preview.visible = false
+		_current_data = null
+		return
 	var item_id := Inventory.get_selected_item()
 	var data = Furn.from_item(item_id)
 	_current_data = data

@@ -1,0 +1,16 @@
+---
+description: Keep gameplay logic independent from placeholder and production visuals
+alwaysApply: true
+---
+
+# Logic and Visual Separation
+
+- Treat gameplay state as authoritative. Visual nodes only render state and forward user intent.
+- Put reusable gameplay rules in autoloads, Resources, or focused logic scripts; do not derive rules from sprite names, animation frames, colors, or node visibility.
+- Give replaceable world objects their own PackedScene. Keep interaction/collision contracts on stable roots and place Sprite2D, AnimatedSprite2D, AnimationPlayer, particles, and placeholder polygons beneath a dedicated visual child.
+- Expose narrow visual methods such as `refresh_visual()`, `set_stage(stage)`, or `play_state(state)` instead of having gameplay systems manipulate specific art nodes.
+- Keep placeholder geometry in scenes or visual helpers when possible. Do not construct permanent art inside gameplay autoloads.
+- Store item/crop presentation (display name, icon, color, animation references) in data Resources rather than gameplay-ID match statements as the content model grows.
+- Use named node references, groups, exported NodePaths, and project collision-layer names instead of duplicating numeric layers or relying on draw order.
+- Preserve logical behavior when replacing placeholder art. Art swaps should primarily change scenes/resources, not farming, inventory, time, or interaction rules.
+- When a prototype shortcut couples logic and visuals, document it in `GAME_SYSTEMS_SUMMARY.md` as technical debt and keep the coupling localized.

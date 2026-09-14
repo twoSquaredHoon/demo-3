@@ -1,0 +1,46 @@
+{
+  "id": "ken",
+  "display_name": "Ken",
+  "color": "#6a8fc4",
+  "start": "greeting",
+  "nodes": {
+    "meet": {
+      "entry": true,
+      "priority": 20,
+      "when": { "flag_not": "ken_met" },
+      "lines": [
+        "Hey. I'm Ken. I wander through when the weather's decent.",
+        { "speaker": "You", "text": "Nice to meet you." },
+        "You selling anything yet, or still figuring out the hoe?"
+      ],
+      "choices": [
+        { "text": "Already sold a harvest.", "goto": "meet_sold" },
+        { "text": "Still planting.", "goto": "meet_planting" }
+      ]
+    },
+    "meet_sold": {
+      "lines": ["Ha. Place a Selling Box if you haven't. Money lands the next morning."],
+      "set_flags": ["ken_met"]
+    },
+    "meet_planting": {
+      "lines": [
+        "Rice is one-and-done. Beans come back after you pick them.",
+        "Water every day or they just wait."
+      ],
+      "set_flags": ["ken_met"]
+    },
+    "greeting": {
+      "entry": true,
+      "priority": 1,
+      "when": { "flag": "ken_met" },
+      "lines": ["Need a hand? I'm mostly here to talk."],
+      "choices": []
+    },
+    "summer": {
+      "entry": true,
+      "priority": 10,
+      "when": { "flag": "ken_met", "season": "summer" },
+      "lines": ["Heat's brutal. Don't skip watering."]
+    }
+  }
+}

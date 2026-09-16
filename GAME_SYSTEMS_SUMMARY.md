@@ -211,10 +211,10 @@ Tree:
 - `Player`
   - instance of `player/player.tscn`
   - position `(256, 256)`
-- `Maya` and `Ken`
+- `노유라` and `Bob`
   - instances of `npcs/npc.tscn`
   - positions `(176, 208)` and `(352, 208)`
-  - `npc_id` `maya` / `ken`
+  - `npc_id` `nora` / `bob`
 
 The bed is no longer a fixed scene instance; it starts in the backpack as a placeable furniture item. The location label remains `"Spring Farm"` even when the visual season changes.
 
@@ -1238,8 +1238,8 @@ NPCs and dialogue:
 - `npcs/npc.tscn`
 - `dialogue/dialogue_catalog.gd`
 - `dialogue/FORMAT.md`
-- `dialogue/content/maya.json`
-- `dialogue/content/ken.json`
+- `dialogue/content/nora.json`
+- `dialogue/content/bob.json`
 
 Inventory:
 
@@ -1398,7 +1398,7 @@ Ignored/generated directories are documented separately in section 37.
 - Embeds TileSet atlas definitions for all four seasonal PNGs.
 - Uses Spring source ID 1 for its painted cells.
 - Instances `player/player.tscn` at `(256, 256)`.
-- Instances `npcs/npc.tscn` twice (`Maya` at `(176, 208)`, `Ken` at `(352, 208)`).
+- Instances `npcs/npc.tscn` twice (`노유라` at `(176, 208)` with `npc_id` `nora`, `Bob` at `(352, 208)`).
 - The bed is no longer a fixed instance; it is placed from inventory.
 - This is the only seasonal farm file containing complete gameplay objects.
 
@@ -2356,7 +2356,7 @@ JSON-driven conversations and generic NPC world objects. Writer files live in `d
 - One PackedScene: `npcs/npc.tscn`, script `npcs/npc.gd`, extends the interactable base.
 - `@export var npc_id` must match a JSON file. Visual child (polygon + name label) reads color/name from the catalog.
 - Solid `StaticBody2D` on collision layer 1, like the bed. Not placed through Furniture.
-- Shipping content: Maya (first-meet branch, repeat greeting, night line 20:00–05:00) and Ken (first-meet branch, repeat greeting, summer-only line).
+- Shipping content: Nora (`노유라` / display name `유라`) and Bob are on the farm.
 
 Adding a talker: new `dialogue/content/<id>.json` + drop `npcs/npc.tscn` and set `npc_id`. Unique art later is a duplicated scene with the same script and id; JSON path does not change.
 
@@ -2421,6 +2421,6 @@ No gameplay-rule changes. Inventory add/merge/swap/quick-transfer and dialogue s
 - Removed unused `Inventory.menu_visibility_changed`.
 - World movement, tools, interact, and furniture preview freeze on `GameTime.paused` instead of repeating the three HUD flags.
 - Inventory HUD still checks `Dialogue.is_open` / `ConfirmHud.is_open` so Escape can close the backpack.
-- NPC interact is left-click. Maya's first-meet tip no longer says "Right-click me."
+- NPC interact is left-click. Nora's first-meet tip no longer says "Right-click me."
 - Trimmed leftover comments on the inventory, NPC, and dialogue scripts.
 

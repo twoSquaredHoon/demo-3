@@ -1,0 +1,46 @@
+{
+  "id": "nora",
+  "display_name": "유라",
+  "color": "#c47a6a",
+  "start": "greeting",
+  "nodes": {
+    "meet": {
+      "entry": true,
+      "priority": 20,
+      "when": { "flag_not": "nora_met" },
+      "lines": [
+        "네가 새로 온 사람이구나. 흙 망가뜨리지 마.",
+        { "speaker": "나", "text": "노력해볼게." },
+        "호미는 다룰 줄 알아?"
+      ],
+      "choices": [
+        { "text": "알아서 잘해.", "goto": "meet_confident" },
+        { "text": "팁 좀 줄래?", "goto": "meet_help" }
+      ]
+    },
+    "meet_confident": {
+      "lines": ["두고 보자. 콩 시들면 와서 울지 말고."],
+      "set_flags": ["nora_met"]
+    },
+    "meet_help": {
+      "lines": [
+        "갈고, 심고, 물 주고, 자. 물 하루만 빼먹으면 그냥 그대로야.",
+        "까먹으면 나한테 물어봐. 여기 살고 있으니까."
+      ],
+      "set_flags": ["nora_met"]
+    },
+    "greeting": {
+      "entry": true,
+      "priority": 1,
+      "when": { "flag": "nora_met" },
+      "lines": ["작물은 아직 살아 있어?"],
+      "choices": []
+    },
+    "night": {
+      "entry": true,
+      "priority": 10,
+      "when": { "flag": "nora_met", "hour_from": 20, "hour_to": 5 },
+      "lines": ["가서 자. 흙은 어디 안 가."]
+    }
+  }
+}

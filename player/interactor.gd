@@ -17,11 +17,12 @@ extends Area2D
 ##
 ## Selection is proximity, not aim: interacting picks whichever eligible
 ## overlapping object is CLOSEST to the player's origin — it does not care
-## where the mouse cursor is. Contrast with TileTargeter (farming/
-## tile_targeter.gd), which IS cursor-aimed but only for farming tools.
+## where the mouse cursor is. Exception: NPCs can be talked to from
+## `npcs/npc.gd`'s TALK_RANGE if the cursor is actually over their body.
 
 const INTERACT_LAYER := 2
 const INTERACTABLE_GROUP := "interactable"
+const NPC_GROUP := "npc"
 
 var _in_range: Array[Area2D] = []
 
@@ -39,10 +40,13 @@ func _unhandled_input(event: InputEvent) -> void:
 	if GameTime.paused:
 		return
 	if event.is_action_pressed("interact"):
+		var actor := get_parent()
+		if _try_talk_at_cursor(actor):
+			get_viewport().set_input_as_handled()
+			return
 		var target := get_nearest()
 		if target == null:
 			return
-		var actor := get_parent()
 		if not target.can_interact(actor):
 			return
 		target.interact(actor)
@@ -81,6 +85,10 @@ func get_nearest() -> Area2D:
 	for item in _in_range:
 		if not is_instance_valid(item) or not item.has_method("can_interact"):
 			continue
+		# NPCs are cursor-aimed (see _try_talk_at_cursor); do not start a
+		# conversation from a click on empty ground.
+		if item.is_in_group(NPC_GROUP):
+			continue
 		if not item.can_interact(actor):
 			continue
 		var dist := origin.distance_squared_to(item.global_position)
@@ -97,3 +105,34 @@ func _on_area_entered(area: Area2D) -> void:
 
 func _on_area_exited(area: Area2D) -> void:
 	_in_range.erase(area)
+
+
+## Cursor-aimed talk: the NPC body stays 16×32, but conversation is allowed
+## from TALK_RANGE. Clicking empty ground does not start a talk.
+func _try_talk_at_cursor(actor: Node) -> bool:
+	var npc := _npc_under_cursor()
+	if npc == null:
+		return false
+	# Cursor is on an NPC: this click is talk-or-nothing, never harvest.
+	if not npc.can_interact(actor):
+		return true
+	var talk_range := float(npc.TALK_RANGE)
+	if global_position.distance_to(npc.global_position) > talk_range:
+		return true
+	npc.interact(actor)
+	return true
+
+
+func _npc_under_cursor() -> Area2D:
+	var space := get_world_2d().direct_space_state
+	var query := PhysicsPointQueryParameters2D.new()
+	query.position = get_global_mouse_position()
+	query.collide_with_areas = true
+	query.collide_with_bodies = false
+	query.collision_mask = INTERACT_LAYER
+	var hits := space.intersect_point(query, 16)
+	for hit in hits:
+		var collider = hit.get("collider")
+		if collider is Area2D and collider.is_in_group(NPC_GROUP):
+			return collider
+	return null

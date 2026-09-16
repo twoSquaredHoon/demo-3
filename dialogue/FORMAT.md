@@ -1,18 +1,18 @@
 # Dialogue JSON format
 
-One file per NPC in `dialogue/content/`. Filename must match `"id"` (`maya.json` → `"maya"`). Drop a generic `npcs/npc.tscn` in the world and set `npc_id` to that same id.
+One file per NPC in `dialogue/content/`. Filename must match `"id"` (`nora.json` → `"nora"`). Drop a generic `npcs/npc.tscn` in the world and set `npc_id` to that same id.
 
 ```json
 {
-  "id": "maya",
-  "display_name": "Maya",
+  "id": "nora",
+  "display_name": "유라",
   "color": "#c47a6a",
   "start": "greeting",
   "nodes": {
     "greeting": {
       "entry": true,
       "priority": 1,
-      "when": { "flag": "maya_met" },
+      "when": { "flag": "nora_met" },
       "lines": ["Crops still alive?"],
       "choices": [],
       "set_flags": []

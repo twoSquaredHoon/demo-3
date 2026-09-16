@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://player/tool_use.gd" id="3_tool"]
 [ext_resource type="Script" path="res://player/furniture_placer.gd" id="5_furniture"]
 [ext_resource type="Script" path="res://player/interactor.gd" id="4_interactor"]
+[ext_resource type="Script" path="res://player/dialogue_camera.gd" id="6_dialogue_cam"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(16, 32)
@@ -28,6 +29,7 @@ polygon = PackedVector2Array(-8, -16, 8, -16, 8, 16, -8, 16)
 zoom = Vector2(3, 3)
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
+script = ExtResource("6_dialogue_cam")
 
 [node name="TileTargeter" type="Node2D" parent="."]
 script = ExtResource("2_targeter")

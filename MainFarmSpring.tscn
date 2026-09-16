@@ -85,10 +85,10 @@ layer_2/tile_data = PackedInt32Array(1966110, 196609, 1610612736, 1966081, 19660
 [node name="Player" parent="." instance=ExtResource("6_player")]
 position = Vector2(256, 256)
 
-[node name="Maya" parent="." instance=ExtResource("7_npc")]
+[node name="노유라" parent="." instance=ExtResource("7_npc")]
 position = Vector2(176, 208)
-npc_id = "maya"
+npc_id = "nora"
 
-[node name="Ken" parent="." instance=ExtResource("7_npc")]
+[node name="Bob" parent="." instance=ExtResource("7_npc")]
 position = Vector2(352, 208)
-npc_id = "ken"
+npc_id = "bob"

@@ -1,0 +1,46 @@
+{
+  "id": "bob",
+  "display_name": "일현",
+  "color": "#6a8fc4",
+  "start": "greeting",
+  "nodes": {
+    "meet": {
+      "entry": true,
+      "priority": 20,
+      "when": { "flag_not": "bob_met" },
+      "lines": [
+        "안녕하세요.",
+        { "speaker": "나", "text": "안녕하세요." },
+        "더 하실 말씀이라도 있으세요?"
+      ],
+      "choices": [
+        { "text": "이미 수확해서 팔았어.", "goto": "meet_sold" },
+        { "text": "아직 심는 중이야.", "goto": "meet_planting" }
+      ]
+    },
+    "meet_sold": {
+      "lines": ["하하. 아직이면 판매 상자부터 놓아. 돈은 다음 날 아침에 들어와."],
+      "set_flags": ["bob_met"]
+    },
+    "meet_planting": {
+      "lines": [
+        "벼는 한 번 따면 끝이야. 콩은 따도 다시 자라.",
+        "매일 물 줘야 해. 안 그러면 그냥 기다려."
+      ],
+      "set_flags": ["bob_met"]
+    },
+    "greeting": {
+      "entry": true,
+      "priority": 1,
+      "when": { "flag": "bob_met" },
+      "lines": ["도움 필요해? 난 주로 얘기하러 온 거야."],
+      "choices": []
+    },
+    "summer": {
+      "entry": true,
+      "priority": 10,
+      "when": { "flag": "bob_met", "season": "summer" },
+      "lines": ["더위가 장난 아니네. 물 주는 거 빼먹지 마."]
+    }
+  }
+}

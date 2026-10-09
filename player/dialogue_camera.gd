@@ -6,8 +6,8 @@ extends Camera2D
 ## autoload; this script only moves the view.
 ##
 ## The camera stays parented to the player. Looking at a speaker is done by
-## setting `position` to (speaker_global - player_global) so Godot's
-## existing position_smoothing pans instead of snapping. Zoom stays with
+## setting `position` to (speaker_global - player_global); smoothing is
+## switched on only during conversations so those moves pan, not snap. Zoom stays with
 ## ui/location_hud.gd.
 
 const NPC_GROUP := "npc"
@@ -22,6 +22,10 @@ var _talking: bool = false
 
 func _ready() -> void:
 	_idle_smoothing = position_smoothing_speed
+	# Walking: camera locked on the player (no smoothing), so the character
+	# stays fixed at screen center and the world scrolls. Smoothing is only
+	# turned on for the dialogue pans below.
+	position_smoothing_enabled = false
 	Dialogue.conversation_started.connect(_on_conversation_started)
 	Dialogue.line_changed.connect(_on_line_changed)
 	Dialogue.choices_changed.connect(_on_choices_changed)
@@ -30,6 +34,7 @@ func _ready() -> void:
 
 func _on_conversation_started(_npc_id: String) -> void:
 	_talking = true
+	position_smoothing_enabled = true
 	position_smoothing_speed = TALK_SMOOTHING
 
 
@@ -53,6 +58,13 @@ func _on_conversation_ended() -> void:
 	_talking = false
 	position_smoothing_speed = _idle_smoothing
 	position = Vector2.ZERO
+
+
+func _process(_delta: float) -> void:
+	# After a conversation, let the pan back finish, then lock on again.
+	if not _talking and position_smoothing_enabled:
+		if get_screen_center_position().distance_to(get_target_position()) < 0.5:
+			position_smoothing_enabled = false
 
 
 func _look_at_player() -> void:

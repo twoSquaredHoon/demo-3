@@ -41,7 +41,6 @@ There is currently no:
 - Input rebinding UI.
 - Audio system.
 - Animation system.
-- Scene transition system.
 - Shop, quest, stamina, or combat system.
 
 ## 3. Autoload Order and Responsibilities
@@ -216,7 +215,7 @@ Tree:
   - positions `(176, 208)` and `(352, 208)`
   - `npc_id` `nora` / `bob`
 
-The bed is no longer a fixed scene instance; it starts in the backpack as a placeable furniture item. The location label remains `"Spring Farm"` even when the visual season changes.
+The bed is no longer a fixed scene instance; it starts in the backpack as a placeable furniture item. East path walks to 햇살장터. The location label is `"산기슭 농장"`.
 
 ## 6. Seasonal Farm Rendering
 
@@ -1272,7 +1271,6 @@ Every active script has a `.gd.uid` sidecar. Some manually-authored scenes and e
 ## 28. Explicitly Not Implemented Yet
 
 - Save/load and serialization.
-- Multiple playable locations.
 - Location-specific soil stores.
 - Indoor/outdoor transitions.
 - Farmable metadata or restricted plots.
@@ -2356,7 +2354,7 @@ JSON-driven conversations and generic NPC world objects. Writer files live in `d
 - One PackedScene: `npcs/npc.tscn`, script `npcs/npc.gd`, extends the interactable base.
 - `@export var npc_id` must match a JSON file. Visual child (polygon + name label) reads color/name from the catalog.
 - Solid `StaticBody2D` on collision layer 1, like the bed. Not placed through Furniture.
-- Shipping content: Nora (`노유라` / display name `유라`) and Bob are on the farm.
+- Shipping content: 유라 and 일현 on the farm; 민서 in 햇살장터; 하린 in 고샅길; 은채 in 솔바람언덕. Everyday flags only (`*_met`).
 
 Adding a talker: new `dialogue/content/<id>.json` + drop `npcs/npc.tscn` and set `npc_id`. Unique art later is a duplicated scene with the same script and id; JSON path does not change.
 
@@ -2423,4 +2421,57 @@ No gameplay-rule changes. Inventory add/merge/swap/quick-transfer and dialogue s
 - Inventory HUD still checks `Dialogue.is_open` / `ConfirmHud.is_open` so Escape can close the backpack.
 - NPC interact is left-click. Nora's first-meet tip no longer says "Right-click me."
 - Trimmed leftover comments on the inventory, NPC, and dialogue scripts.
+
+## 44. Addendum (2026-10-03) — City Districts (고유어 names)
+
+Walk between the farm and four placeholder city maps. Inventory, wallet, time, dialogue flags, and soil stay in autoloads. City maps have **no** `farm_tilemap` group, so Soil/Furniture do not paint farm state onto them. HUD / exits / dialogue use invented native-Korean labels, not real Seoul names and not 한자어 titles like 시장 or 공원.
+
+### Travel
+
+- `GameState.travel(scene_path, spawn_id)` defers `change_scene_to_file`.
+- Arriving `location_info.gd` places the `player` group node on a `spawn_point` whose `spawn_id` matches.
+- `locations/map_exit.gd` is a walk-into Area2D on the player collision layer (not an interactable). `unmarked` skips the gold strip and arrow; the shape is a dark gap. Shortcuts already teleport.
+- `locations/city_block.tscn` is interior collision (stalls, roof-walls, railings). Visual child is placeholder polygons.
+
+Mountain layout (farm on top, 골목 ring in the middle, 큰길 at the bottom). The 골목 ring loops: walking right from 세탁소 → 치킨집 → 분식집 → 슈퍼 → back to 세탁소; left goes the other way. Every ring scene uses spawn ids `from_left` / `from_right`.
+
+Vertical links (stairs = shortcuts between layers):
+
+- Farm east ↔ 세탁소 골목 top stair (`from_farm` / `from_alley`).
+- 슈퍼 골목 main stair ↓ ↔ 큰길 (`from_keungil` / `from_alley_main`).
+- 치킨집 골목 hidden narrow stair ↓ ↔ 큰길 east end (`from_keungil_hidden` / `from_alley_hidden`, unmarked).
+
+Locations:
+
+- `MainFarmSpring.tscn` — 농장 (유라, 일현).
+- `locations/golmok_laundry.tscn` — 세탁소 골목 (ring 1, stair up to farm).
+- `locations/golmok_chicken.tscn` — 치킨집 골목 (ring 2, 하린, hidden stair to 큰길).
+- `locations/golmok_bunsik.tscn` — 분식집 골목 (ring 3).
+- `locations/golmok_super.tscn` — 슈퍼 골목 (ring 4, 은채, main stair to 큰길).
+- `locations/keungil.tscn` — 큰길: sidewalk with 과일가게, 카페, 지하철역; 8-lane road (not walkable). 장날 stalls appear along the curb on Thursdays (`locations/jangnal_stalls.gd`).
+
+Location labels are landmark-based placeholders; the alleys have no official names.
+
+Week: `GameTime.weekday()` (day 1 of each season = Mon; 28 days = 4 weeks). `GameTime.is_market_day()` is Thursday (장날). The date HUD shows the weekday.
+
+### Talk
+
+Everyday voices, no missing-farmer mystery. No well object. 유라 says to buy ingredients at the Thursday 장날 on 큰길; 일현 talks weather and walking the 골목; 하린 points at the hidden stair down to 큰길; 은채 sits on the 평상 in front of the 슈퍼 after work.
+
+Placeholder floors and outer walls live in `locations/placeholder_ground.gd` (visual helper, not an autoload).
+
+## 45. Addendum (2026-10-03) — 세줄패 (card match with 민서)
+
+A three-row passing card game originally played with 민서 (removed 2026-10-05; currently no NPC starts it). Original cards and names (not a licensed title). Rules are the familiar best-of-lives, three-row, play-or-pass match: weather locks a row to 1 (heroes ignore it), horns double a row, spies sit on the other board and draw two, bonded copies multiply.
+
+### Loop
+
+- Dialogue node may set `start_minigame: "row_cards"`. Talk ends, then `CardGame.start_match(npc_id)` runs.
+- `autoload/card_game.gd` owns the match. `cards/row_cards.json` is the card/deck catalog (`cards/card_catalog.gd`).
+- `ui/card_game_hud.tscn` (CanvasLayer 14) renders rows/hand and sends play, pass, forfeit.
+- Pause source `"card_game"`. Inventory will not open while `CardGame.is_open`.
+- Win sets `minseo_cards_won`; any finished match sets `minseo_cards_played`. Escape forfeits.
+
+
+
 

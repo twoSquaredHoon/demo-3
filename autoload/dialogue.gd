@@ -43,6 +43,12 @@ func has_flag(flag: String) -> bool:
 	return bool(_flags.get(flag, false))
 
 
+func set_flag(flag: String) -> void:
+	if flag.is_empty():
+		return
+	_flags[flag] = true
+
+
 func can_start(npc_id: String) -> bool:
 	if is_open or GameTime.paused:
 		return false
@@ -111,8 +117,13 @@ func _finish_current_node() -> void:
 		waiting_for_choice = true
 		choices_changed.emit(_choices.duplicate(true))
 		return
+	var node := _catalog.get_node(current_npc_id, _node_id)
+	var minigame := str(node.get("start_minigame", ""))
+	var npc := current_npc_id
 	_apply_node_flags()
 	_end_conversation()
+	if minigame == "row_cards":
+		CardGame.start_match(npc)
 
 
 func _emit_current_line() -> void:

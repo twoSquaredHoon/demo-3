@@ -2,8 +2,9 @@ extends Area2D
 
 ## Child of Player (player/player.tscn: Player → Interactor).
 ##
-## Left-click (`interact`): use the nearest world object (bed sleep, harvest,
-## talk, selling box, …) via interact().
+## Left-click (`interact`): talk to the NPC under the cursor; otherwise, if
+## ToolUse.wants_click() (farming applies), leave the click to ToolUse;
+## otherwise use the nearest world object (bed, selling box, …).
 ## Right-click (`use_item`): if the nearest object implements
 ## interact_pickup() (currently the bed), pick it up; otherwise leave the
 ## event for ToolUse (tools / seeds / furniture place).
@@ -43,6 +44,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		var actor := get_parent()
 		if _try_talk_at_cursor(actor):
 			get_viewport().set_input_as_handled()
+			return
+		# Farming (harvest / till / water / plant / furniture) wins the click
+		# when it applies; ToolUse handles it next.
+		var tool_use := get_node_or_null("../ToolUse")
+		if tool_use != null and tool_use.wants_click():
 			return
 		var target := get_nearest()
 		if target == null:

@@ -1,0 +1,31 @@
+{
+  "id": "harin",
+  "display_name": "하린",
+  "color": "#e090b0",
+  "start": "greeting",
+  "nodes": {
+    "meet": {
+      "entry": true,
+      "priority": 20,
+      "when": { "flag_not": "harin_met" },
+      "lines": [
+        "너 새 농부지? 여긴 이름도 없는 골목이야.",
+        { "speaker": "나", "text": "길이 좁네." },
+        "큰길은 어른들 거야. 저 좁은 계단으로 내려가면 큰길 끝으로 바로 나와. 나 혼자 알아."
+      ],
+      "set_flags": ["harin_met"]
+    },
+    "greeting": {
+      "entry": true,
+      "priority": 1,
+      "when": { "flag": "harin_met" },
+      "lines": ["나는 계단 쪽이 제일 재밌어."]
+    },
+    "night": {
+      "entry": true,
+      "priority": 12,
+      "when": { "flag": "harin_met", "hour_from": 20, "hour_to": 5 },
+      "lines": ["엄마가 들어오래. 근데 계단은 밤에 더 조용해서… 조금만 더."]
+    }
+  }
+}

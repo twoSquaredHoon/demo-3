@@ -11,7 +11,7 @@
       "lines": [
         "네가 새로 온 사람이구나. 흙 망가뜨리지 마.",
         { "speaker": "나", "text": "노력해볼게." },
-        "호미는 다룰 줄 알아?"
+        "동쪽으로 내려가면 골목이야. 마늘이랑 소금은 목요일 장날에 큰길에서 사. 호미는 다룰 줄 알아?"
       ],
       "choices": [
         { "text": "알아서 잘해.", "goto": "meet_confident" },
@@ -33,8 +33,7 @@
       "entry": true,
       "priority": 1,
       "when": { "flag": "nora_met" },
-      "lines": ["작물은 아직 살아 있어?"],
-      "choices": []
+      "lines": ["작물은 아직 살아 있어?"]
     },
     "night": {
       "entry": true,

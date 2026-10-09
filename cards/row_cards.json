@@ -1,0 +1,58 @@
+{
+  "rows": {
+    "field": { "name": "밭", "color": "#6a8a44" },
+    "alley": { "name": "골목", "color": "#c48448" },
+    "hill": { "name": "언덕", "color": "#4a6e8a" }
+  },
+  "cards": [
+    { "id": "hoe", "name": "호미", "power": 4, "row": "field", "ability": "none" },
+    { "id": "rice", "name": "볏단", "power": 6, "row": "field", "ability": "none" },
+    { "id": "bean", "name": "콩", "power": 3, "row": "field", "ability": "bond" },
+    { "id": "hen", "name": "닭", "power": 2, "row": "field", "ability": "none" },
+    { "id": "ox", "name": "소", "power": 8, "row": "field", "ability": "none" },
+    { "id": "yura", "name": "유라", "power": 10, "row": "field", "ability": "hero" },
+    { "id": "can", "name": "물뿌리개", "power": 5, "row": "alley", "ability": "none" },
+    { "id": "ilhyeon", "name": "일현", "power": 6, "row": "alley", "ability": "none" },
+    { "id": "scarecrow", "name": "허수아비", "power": 4, "row": "alley", "ability": "spy" },
+    { "id": "crow", "name": "까마귀", "power": 3, "row": "alley", "ability": "none" },
+    { "id": "path", "name": "산길", "power": 5, "row": "hill", "ability": "none" },
+    { "id": "pine", "name": "솔", "power": 7, "row": "hill", "ability": "none" },
+    { "id": "stone", "name": "산돌", "power": 4, "row": "hill", "ability": "none" },
+    { "id": "wind", "name": "산바람", "power": 6, "row": "hill", "ability": "none" },
+    { "id": "frost", "name": "서리", "power": 0, "row": "field", "ability": "weather" },
+    { "id": "fog", "name": "안개", "power": 0, "row": "alley", "ability": "weather" },
+    { "id": "rain", "name": "비", "power": 0, "row": "hill", "ability": "weather" },
+    { "id": "horn_field", "name": "밭북", "power": 0, "row": "field", "ability": "horn" },
+    { "id": "horn_alley", "name": "골목북", "power": 0, "row": "alley", "ability": "horn" },
+    { "id": "tteok", "name": "떡", "power": 5, "row": "field", "ability": "bond" },
+    { "id": "pot", "name": "국솥", "power": 7, "row": "field", "ability": "none" },
+    { "id": "minseo", "name": "민서", "power": 10, "row": "field", "ability": "hero" },
+    { "id": "wood", "name": "장작", "power": 4, "row": "field", "ability": "none" },
+    { "id": "ladle", "name": "국자", "power": 3, "row": "field", "ability": "none" },
+    { "id": "onion", "name": "파", "power": 2, "row": "field", "ability": "none" },
+    { "id": "cart", "name": "수레", "power": 5, "row": "field", "ability": "none" },
+    { "id": "pear", "name": "배", "power": 4, "row": "alley", "ability": "bond" },
+    { "id": "guest", "name": "손", "power": 5, "row": "alley", "ability": "spy" },
+    { "id": "harin", "name": "하린", "power": 3, "row": "alley", "ability": "spy" },
+    { "id": "oil", "name": "기름", "power": 4, "row": "alley", "ability": "none" },
+    { "id": "pinewind", "name": "솔바람", "power": 6, "row": "hill", "ability": "none" },
+    { "id": "eunchae", "name": "은채", "power": 7, "row": "hill", "ability": "hero" },
+    { "id": "wall", "name": "돌담", "power": 8, "row": "hill", "ability": "none" },
+    { "id": "shade", "name": "그늘", "power": 5, "row": "hill", "ability": "none" },
+    { "id": "horn_hill", "name": "언덕북", "power": 0, "row": "hill", "ability": "horn" }
+  ],
+  "decks": {
+    "player": [
+      "hoe", "hoe", "rice", "bean", "bean", "bean", "hen", "ox", "yura",
+      "can", "ilhyeon", "scarecrow", "crow",
+      "path", "pine", "stone", "wind",
+      "frost", "fog", "rain", "horn_field", "horn_alley"
+    ],
+    "minseo": [
+      "tteok", "tteok", "pot", "minseo", "wood", "ladle", "onion", "cart",
+      "pear", "pear", "guest", "harin", "oil",
+      "pinewind", "eunchae", "wall", "shade",
+      "frost", "fog", "rain", "horn_field", "horn_hill"
+    ]
+  }
+}

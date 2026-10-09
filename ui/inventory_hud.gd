@@ -29,7 +29,7 @@ func _ready() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	# Not GameTime.paused: the backpack itself pauses time.
-	if Dialogue.is_open or ConfirmHud.is_open:
+	if Dialogue.is_open or ConfirmHud.is_open or CardGame.is_open:
 		return
 
 	if event.is_action_pressed("open_inventory") and not Inventory.is_menu_open:

@@ -4,7 +4,7 @@ extends RefCounted
 ## Dialogue autoload owns the live session and flags.
 
 const CONTENT_DIR := "res://dialogue/content"
-const KNOWN_WHEN_KEYS := ["flag", "flag_not", "season", "hour_from", "hour_to"]
+const KNOWN_WHEN_KEYS := ["flag", "flags", "flag_not", "season", "hour_from", "hour_to"]
 const SEASON_NAMES := ["spring", "summer", "fall", "winter"]
 
 var npcs: Dictionary = {} # npc_id -> Dictionary (parsed file)
@@ -82,6 +82,9 @@ func when_matches(when, flags: Dictionary) -> bool:
 	if clause.has("flag"):
 		if not bool(flags.get(str(clause["flag"]), false)):
 			return false
+	if clause.has("flags"):
+		if not _all_flags(clause["flags"], flags):
+			return false
 	if clause.has("flag_not"):
 		if bool(flags.get(str(clause["flag_not"]), false)):
 			return false
@@ -93,6 +96,15 @@ func when_matches(when, flags: Dictionary) -> bool:
 		if not clause.has("hour_from") or not clause.has("hour_to"):
 			return false
 		if not _hour_in_range(GameTime.hour, int(clause["hour_from"]), int(clause["hour_to"])):
+			return false
+	return true
+
+
+func _all_flags(raw, flags: Dictionary) -> bool:
+	if typeof(raw) != TYPE_ARRAY:
+		return false
+	for item in raw:
+		if not bool(flags.get(str(item), false)):
 			return false
 	return true
 
@@ -152,6 +164,11 @@ func _validate_npc(path: String, data: Dictionary) -> bool:
 		if flags != null and typeof(flags) != TYPE_ARRAY:
 			push_error("Dialogue catalog: %s node '%s' set_flags must be an array" % [path, node_id])
 			ok = false
+		if node_dict.has("start_minigame"):
+			var game := str(node_dict.get("start_minigame", ""))
+			if game != "row_cards":
+				push_error("Dialogue catalog: %s node '%s' unknown start_minigame '%s'" % [path, node_id, game])
+				ok = false
 	return ok
 
 
@@ -172,6 +189,9 @@ func _validate_when(path: String, node_id: String, when) -> bool:
 		ok = false
 	if clause.has("hour_from") != clause.has("hour_to"):
 		push_error("Dialogue catalog: %s node '%s' hour_from and hour_to must be used together" % [path, node_id])
+		ok = false
+	if clause.has("flags") and typeof(clause["flags"]) != TYPE_ARRAY:
+		push_error("Dialogue catalog: %s node '%s' flags must be an array" % [path, node_id])
 		ok = false
 	return ok
 

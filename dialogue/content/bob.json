@@ -1,0 +1,45 @@
+{
+  "id": "bob",
+  "display_name": "일현",
+  "color": "#6a8fc4",
+  "start": "greeting",
+  "nodes": {
+    "meet": {
+      "entry": true,
+      "priority": 20,
+      "when": { "flag_not": "bob_met" },
+      "lines": [
+        "안녕하세요. 저는 일현이예요. 날씨 괜찮은 날엔 이 길을 지나거든요.",
+        { "speaker": "나", "text": "안녕하세요." },
+        "오늘은 바람이 부드러워요. 골목 쪽은 그늘이 져서 더 시원할 거예요."
+      ],
+      "choices": [
+        { "text": "이미 팔아봤어.", "goto": "meet_sold" },
+        { "text": "아직 심는 중이야.", "goto": "meet_planting" }
+      ]
+    },
+    "meet_sold": {
+      "lines": ["하하. 판매 상자 있으면 다음 날 아침에 돈이 들어와. 수고했네요."],
+      "set_flags": ["bob_met"]
+    },
+    "meet_planting": {
+      "lines": [
+        "벼는 한 번 따면 끝이야. 콩은 따도 다시 자라.",
+        "매일 물 줘야 해. 안 그러면 그냥 기다려."
+      ],
+      "set_flags": ["bob_met"]
+    },
+    "greeting": {
+      "entry": true,
+      "priority": 1,
+      "when": { "flag": "bob_met" },
+      "lines": ["오늘 하늘 봤어요? 구름이 낮게 떠서, 골목 한 바퀴 돌기 좋겠어요."]
+    },
+    "summer": {
+      "entry": true,
+      "priority": 10,
+      "when": { "flag": "bob_met", "season": "summer" },
+      "lines": ["더위가 장난 아니네. 물 주는 거 빼먹지 마. 나는 그늘만 찾아다녀."]
+    }
+  }
+}

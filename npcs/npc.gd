@@ -5,12 +5,19 @@ extends "res://interactables/interactable.gd"
 
 @export var npc_id: String = ""
 
+const NPC_GROUP := "npc"
+## How far the player may stand from an NPC and still start a conversation
+## by clicking their body. The Interactor overlap circle stays at 28px
+## (player.tscn) for beds/crops/boxes; this extra range is click-on-NPC only.
+const TALK_RANGE := 56.0
+
 @onready var _body_shape: Polygon2D = $Visual/BodyShape
 @onready var _name_label: Label = $Visual/NameLabel
 
 
 func _ready() -> void:
 	super._ready()
+	add_to_group(NPC_GROUP)
 	prompt = "Talk"
 	_refresh_visual()
 

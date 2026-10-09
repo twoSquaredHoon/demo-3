@@ -1,0 +1,238 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://ui/card_game_hud.gd" id="1_hud"]
+
+[node name="CardGameHud" type="CanvasLayer"]
+layer = 14
+script = ExtResource("1_hud")
+
+[node name="Root" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Dim" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0.05, 0.06, 0.08, 0.94)
+
+[node name="Margin" type="MarginContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="Root/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Header" type="HBoxContainer" parent="Root/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="TitleLabel" type="Label" parent="Root/Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "세줄패"
+
+[node name="GemLabel" type="Label" parent="Root/Margin/VBox/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "●●    ●●"
+
+[node name="OppScore" type="Label" parent="Root/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.8, 0.55, 1)
+theme_override_font_sizes/font_size = 16
+text = "상대  0"
+
+[node name="OppHandLabel" type="Label" parent="Root/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.75, 1)
+theme_override_font_sizes/font_size = 12
+text = "상대 손패 10장"
+
+[node name="OppHillScroll" type="ScrollContainer" parent="Root/Margin/VBox"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+vertical_scroll_mode = 0
+
+[node name="OppHill" type="HBoxContainer" parent="Root/Margin/VBox/OppHillScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="OppAlleyScroll" type="ScrollContainer" parent="Root/Margin/VBox"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+vertical_scroll_mode = 0
+
+[node name="OppAlley" type="HBoxContainer" parent="Root/Margin/VBox/OppAlleyScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="OppFieldScroll" type="ScrollContainer" parent="Root/Margin/VBox"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+vertical_scroll_mode = 0
+
+[node name="OppField" type="HBoxContainer" parent="Root/Margin/VBox/OppFieldScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Divider" type="ColorRect" parent="Root/Margin/VBox"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0.75, 0.65, 0.35, 0.8)
+
+[node name="PlayerFieldScroll" type="ScrollContainer" parent="Root/Margin/VBox"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+vertical_scroll_mode = 0
+
+[node name="PlayerField" type="HBoxContainer" parent="Root/Margin/VBox/PlayerFieldScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PlayerAlleyScroll" type="ScrollContainer" parent="Root/Margin/VBox"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+vertical_scroll_mode = 0
+
+[node name="PlayerAlley" type="HBoxContainer" parent="Root/Margin/VBox/PlayerAlleyScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PlayerHillScroll" type="ScrollContainer" parent="Root/Margin/VBox"]
+custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
+vertical_scroll_mode = 0
+
+[node name="PlayerHill" type="HBoxContainer" parent="Root/Margin/VBox/PlayerHillScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="PlayerScore" type="Label" parent="Root/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.92, 0.7, 1)
+theme_override_font_sizes/font_size = 16
+text = "나  0"
+
+[node name="WeatherLabel" type="Label" parent="Root/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.82, 0.95, 1)
+theme_override_font_sizes/font_size = 12
+text = "날씨 없음"
+
+[node name="LogLabel" type="Label" parent="Root/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = ""
+autowrap_mode = 3
+
+[node name="HandScroll" type="ScrollContainer" parent="Root/Margin/VBox"]
+custom_minimum_size = Vector2(0, 84)
+layout_mode = 2
+vertical_scroll_mode = 0
+
+[node name="HandRow" type="HBoxContainer" parent="Root/Margin/VBox/HandScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Buttons" type="HBoxContainer" parent="Root/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PassButton" type="Button" parent="Root/Margin/VBox/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "패스"
+
+[node name="ForfeitButton" type="Button" parent="Root/Margin/VBox/Buttons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 36)
+layout_mode = 2
+text = "기권"
+
+[node name="ResultRoot" type="Control" parent="Root"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="ResultDim" type="ColorRect" parent="Root/ResultRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.55)
+
+[node name="ResultCenter" type="CenterContainer" parent="Root/ResultRoot"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ResultPanel" type="PanelContainer" parent="Root/ResultRoot/ResultCenter"]
+custom_minimum_size = Vector2(360, 140)
+layout_mode = 2
+
+[node name="ResultBox" type="VBoxContainer" parent="Root/ResultRoot/ResultCenter/ResultPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ResultLabel" type="Label" parent="Root/ResultRoot/ResultCenter/ResultPanel/ResultBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="ResultButton" type="Button" parent="Root/ResultRoot/ResultCenter/ResultPanel/ResultBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(120, 32)
+layout_mode = 2
+size_flags_horizontal = 4
+text = "닫기"

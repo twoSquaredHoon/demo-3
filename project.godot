@@ -28,6 +28,8 @@ LocationHud="*res://ui/location_hud.tscn"
 InventoryHud="*res://ui/inventory_hud.tscn"
 DialogueHud="*res://ui/dialogue_hud.tscn"
 ConfirmHud="*res://ui/confirm_hud.tscn"
+CardGame="*res://autoload/card_game.gd"
+CardGameHud="*res://ui/card_game_hud.tscn"
 
 [display]
 
@@ -114,3 +116,5 @@ hotbar_5={
 textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
 environment/defaults/default_clear_color=Color(0, 0, 0, 1)
+2d/snap/snap_2d_transforms_to_pixel=true
+2d/snap/snap_2d_vertices_to_pixel=true

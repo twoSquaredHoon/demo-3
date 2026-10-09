@@ -26,9 +26,8 @@ extends CanvasLayer
 ## described in GAME_SYSTEMS_SUMMARY.md as of its last audit (2026-08-14) —
 ## it was added after that audit. Documenting it here so the gap is visible
 ## next to the code itself:
-##   - Lets the player zoom the world view out/in in 10% steps between 60%
-##     and 120% of the player Camera2D's original zoom (player.tscn sets
-##     that base zoom to 3x — so the effective range is roughly 1.8x-3.6x).
+##   - Lets the player zoom 50%-150% in 10% steps; 100% = 6x camera zoom
+##     (ZOOM_BASE). Never zooms out past the camera limits (location_info.gd).
 ##   - This is the one place in the project where a HUD script reaches
 ##     directly into a WORLD node (`get_viewport().get_camera_2d()`) rather
 ##     than only listening to autoload signals — a deliberate but notable
@@ -47,8 +46,13 @@ extends CanvasLayer
 @onready var zoom_out_button: Button = %ZoomOutButton
 @onready var zoom_in_button: Button = %ZoomInButton
 
-const ZOOM_MIN := 60
-const ZOOM_MAX := 120
+## 100% = camera zoom ZOOM_BASE (6x). The +/- buttons step by ZOOM_STEP
+## percent. The final zoom is rounded so every art pixel covers a whole
+## number of screen pixels (see _apply_camera_zoom), so any percent stays
+## crisp.
+const ZOOM_BASE := 6.0
+const ZOOM_MIN := 50
+const ZOOM_MAX := 150
 const ZOOM_STEP := 10
 
 var zoom_percent: int = 100
@@ -62,6 +66,7 @@ var _base_camera_zoom: Vector2 = Vector2.ONE
 
 func _ready() -> void:
 	GameState.location_changed.connect(_on_location_changed)
+	get_tree().root.size_changed.connect(_apply_camera_zoom)
 	GameTime.time_changed.connect(_on_time_changed)
 	GameTime.date_changed.connect(_on_date_changed)
 	Wallet.balance_changed.connect(_on_balance_changed)
@@ -84,6 +89,8 @@ func _ready() -> void:
 
 func _on_location_changed(location_name: String) -> void:
 	location_label.text = location_name
+	_camera = null
+	_apply_camera_zoom()
 
 
 func _on_date_changed(_day: int, _season: int, _year: int) -> void:
@@ -131,7 +138,22 @@ func _apply_camera_zoom() -> void:
 	_resolve_camera()
 	if _camera == null:
 		return
-	_camera.zoom = _base_camera_zoom * (float(zoom_percent) / 100.0)
+	# The window stretch (canvas_items) scales everything by a factor that is
+	# usually fractional (e.g. 1280x720 on a 3024px screen = 2.36x). Pick a
+	# camera zoom so camera zoom x window scale is a WHOLE number of screen
+	# pixels per art pixel: crisp pixel art, fullscreen, no black bars.
+	var win_scale := get_tree().root.get_final_transform().get_scale().x
+	if win_scale <= 0.0:
+		win_scale = 1.0
+	var px := roundf(ZOOM_BASE * (float(zoom_percent) / 100.0) * win_scale)
+	# Never zoom out past the map edges: the view must fit inside the limits.
+	var view := get_viewport().get_visible_rect().size
+	var w := float(_camera.limit_right - _camera.limit_left)
+	var h := float(_camera.limit_bottom - _camera.limit_top)
+	if w > 0.0 and h > 0.0 and w < 1000000.0 and h < 1000000.0:
+		px = maxf(px, ceilf(maxf(view.x / w, view.y / h) * win_scale))
+	var z := maxf(px, 1.0) / win_scale
+	_camera.zoom = Vector2(z, z)
 
 
 ## Finds the viewport's active Camera2D (in practice, the Player's Camera2D

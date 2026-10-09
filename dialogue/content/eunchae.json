@@ -1,0 +1,31 @@
+{
+  "id": "eunchae",
+  "display_name": "은채",
+  "color": "#8b6cb0",
+  "start": "greeting",
+  "nodes": {
+    "meet": {
+      "entry": true,
+      "priority": 20,
+      "when": { "flag_not": "eunchae_met" },
+      "lines": [
+        "일 끝나고 이 슈퍼 앞에 앉으면 숨이 좀 트여. 나는 은채야.",
+        { "speaker": "나", "text": "여기 평상 좋네." },
+        "응. 사람 많은 큰길은 못 견디겠더라고. 바람만 있으면 돼."
+      ],
+      "set_flags": ["eunchae_met"]
+    },
+    "greeting": {
+      "entry": true,
+      "priority": 1,
+      "when": { "flag": "eunchae_met" },
+      "lines": ["오늘은 무릎이 뻐근해. 그래도 집보다는 여기가 나아."]
+    },
+    "night": {
+      "entry": true,
+      "priority": 12,
+      "when": { "flag": "eunchae_met", "hour_from": 20, "hour_to": 5 },
+      "lines": ["밤엔 바람이 더 차. 내일 아침이 빨리 왔으면 좋겠어."]
+    }
+  }
+}

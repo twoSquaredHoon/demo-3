@@ -40,9 +40,13 @@ signal year_changed(year: int)
 
 enum Season { SPRING, SUMMER, FALL, WINTER }
 
-const REAL_SECONDS_PER_GAME_MINUTE := 1.0
+## 1 game hour = 10 real seconds (10 / 60 per game minute). Full day = 4 min.
+const REAL_SECONDS_PER_GAME_MINUTE := 10.0 / 60.0
 const DAYS_PER_SEASON := 28
 const SEASON_NAMES := ["Spring", "Summer", "Fall", "Winter"]
+## Day 1 of every season is a Monday (28 days = exactly 4 weeks).
+const WEEKDAY_NAMES := ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+const MARKET_WEEKDAY := 3  # Thursday = 장날
 
 var year: int = 1
 var season: int = Season.SPRING
@@ -100,8 +104,20 @@ func format_clock() -> String:
 	return "%02d:%02d" % [hour, minute]
 
 
+func weekday() -> int:
+	return (day - 1) % 7
+
+
+func weekday_name() -> String:
+	return WEEKDAY_NAMES[weekday()]
+
+
+func is_market_day() -> bool:
+	return weekday() == MARKET_WEEKDAY
+
+
 func format_date() -> String:
-	return "%s %d, Year %d" % [season_name(), day, year]
+	return "%s %d (%s), Year %d" % [season_name(), day, weekday_name(), year]
 
 
 func sleep_to_next_morning(wake_hour: int = 6) -> void:

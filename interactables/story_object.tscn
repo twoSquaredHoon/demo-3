@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://interactables/story_object.gd" id="1_story"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_well"]
+radius = 14.0
+
+[node name="StoryObject" type="Area2D"]
+collision_layer = 2
+collision_mask = 0
+monitoring = false
+monitorable = true
+script = ExtResource("1_story")
+prompt = "Look"
+
+[node name="InteractionShape" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_well")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Rim" type="Polygon2D" parent="Visual"]
+color = Color(0.28, 0.3, 0.34, 1)
+polygon = PackedVector2Array(-12, -6, 12, -6, 10, 10, -10, 10)
+
+[node name="Water" type="Polygon2D" parent="Visual"]
+color = Color(0.12, 0.22, 0.38, 1)
+polygon = PackedVector2Array(-7, -2, 7, -2, 6, 6, -6, 6)
+
+[node name="NameLabel" type="Label" parent="Visual"]
+offset_left = -24.0
+offset_top = -28.0
+offset_right = 24.0
+offset_bottom = -14.0
+theme_override_colors/font_color = Color(0.75, 0.8, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 10
+text = "우물"
+horizontal_alignment = 1

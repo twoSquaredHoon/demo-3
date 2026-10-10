@@ -27,7 +27,7 @@ extends CanvasLayer
 ## it was added after that audit. Documenting it here so the gap is visible
 ## next to the code itself:
 ##   - Lets the player zoom 50%-150% in 10% steps; 100% = 6x camera zoom
-##     (ZOOM_BASE). Never zooms out past the camera limits (location_info.gd).
+##     (ZOOM_BASE). Maps smaller than the view are centered (_fit_camera_limits).
 ##   - This is the one place in the project where a HUD script reaches
 ##     directly into a WORLD node (`get_viewport().get_camera_2d()`) rather
 ##     than only listening to autoload signals — a deliberate but notable
@@ -146,14 +146,34 @@ func _apply_camera_zoom() -> void:
 	if win_scale <= 0.0:
 		win_scale = 1.0
 	var px := roundf(ZOOM_BASE * (float(zoom_percent) / 100.0) * win_scale)
-	# Never zoom out past the map edges: the view must fit inside the limits.
-	var view := get_viewport().get_visible_rect().size
-	var w := float(_camera.limit_right - _camera.limit_left)
-	var h := float(_camera.limit_bottom - _camera.limit_top)
-	if w > 0.0 and h > 0.0 and w < 1000000.0 and h < 1000000.0:
-		px = maxf(px, ceilf(maxf(view.x / w, view.y / h) * win_scale))
 	var z := maxf(px, 1.0) / win_scale
 	_camera.zoom = Vector2(z, z)
+	_fit_camera_limits()
+
+
+## Camera limits from the location's map bounds (set by location_info.gd).
+## On an axis where the map is SMALLER than the view (small interiors), the
+## limits are widened around the map's center, so the room sits centered on
+## screen with the dark background around it. Otherwise the camera stops at
+## the map edges.
+func _fit_camera_limits() -> void:
+	if _camera == null or not _camera.has_meta("map_bounds"):
+		return
+	var b: Rect2 = _camera.get_meta("map_bounds")
+	var view := get_viewport().get_visible_rect().size / _camera.zoom
+	var c := b.get_center()
+	if b.size.x < view.x:
+		_camera.limit_left = int(floorf(c.x - view.x / 2.0))
+		_camera.limit_right = int(ceilf(c.x + view.x / 2.0))
+	else:
+		_camera.limit_left = int(b.position.x)
+		_camera.limit_right = int(b.end.x)
+	if b.size.y < view.y:
+		_camera.limit_top = int(floorf(c.y - view.y / 2.0))
+		_camera.limit_bottom = int(ceilf(c.y + view.y / 2.0))
+	else:
+		_camera.limit_top = int(b.position.y)
+		_camera.limit_bottom = int(b.end.y)
 
 
 ## Finds the viewport's active Camera2D (in practice, the Player's Camera2D

@@ -10,6 +10,8 @@ extends Area2D
 @export var exit_size: Vector2 = Vector2(32, 96)
 ## No gold strip or arrow. Looks like a dark gap so shortcuts can be tested now.
 @export var unmarked: bool = false
+## Fully invisible trigger (e.g. a door that is already drawn in the art).
+@export var invisible: bool = false
 
 @onready var _label: Label = $Label
 @onready var _shape: CollisionShape2D = $CollisionShape2D
@@ -32,7 +34,11 @@ func _ready() -> void:
 		Vector2(half.x, half.y),
 		Vector2(-half.x, half.y),
 	])
-	if unmarked:
+	if invisible:
+		_visual.visible = false
+		if _label:
+			_label.visible = false
+	elif unmarked:
 		_visual.color = Color(0.06, 0.06, 0.08, 0.9)
 		if _label:
 			_label.visible = false

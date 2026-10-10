@@ -7,6 +7,9 @@ extends Node
 ## Tint the world by time of day (locations/day_night.gd). Turn off for
 ## indoor scenes that should stay evenly lit.
 @export var day_night_tint: bool = true
+## Camera limits for scenes without a farm TileMap (e.g. interiors).
+## Leave size at 0 to use the farm TileMap's painted area instead.
+@export var camera_bounds: Rect2 = Rect2()
 
 const DayNight := preload("res://locations/day_night.gd")
 
@@ -26,17 +29,26 @@ func _ready() -> void:
 ## painted area of the scene's farm TileMap (group "farm_tilemap").
 func _apply_camera_limits() -> void:
 	var cam := get_viewport().get_camera_2d()
-	var map := get_tree().get_first_node_in_group("farm_tilemap") as TileMap
-	if cam == null or map == null:
+	if cam == null:
 		return
-	var used := map.get_used_rect()
-	var tile := Vector2(map.tile_set.tile_size)
-	var top_left := map.to_global(Vector2(used.position) * tile)
-	var bottom_right := map.to_global(Vector2(used.end) * tile)
-	cam.limit_left = int(top_left.x)
-	cam.limit_top = int(top_left.y)
-	cam.limit_right = int(bottom_right.x)
-	cam.limit_bottom = int(bottom_right.y)
+	var bounds := camera_bounds
+	if bounds.size == Vector2.ZERO:
+		var map := get_tree().get_first_node_in_group("farm_tilemap") as TileMap
+		if map == null:
+			return
+		var used := map.get_used_rect()
+		var tile := Vector2(map.tile_set.tile_size)
+		var top_left := map.to_global(Vector2(used.position) * tile)
+		var bottom_right := map.to_global(Vector2(used.end) * tile)
+		bounds = Rect2(top_left, bottom_right - top_left)
+	# The HUD (ui/location_hud.gd) turns these bounds into camera limits after
+	# every zoom change: a map smaller than the view is centered with empty
+	# space around it instead of being zoomed in to fill the screen.
+	cam.set_meta("map_bounds", bounds)
+	cam.limit_left = int(bounds.position.x)
+	cam.limit_top = int(bounds.position.y)
+	cam.limit_right = int(bounds.end.x)
+	cam.limit_bottom = int(bounds.end.y)
 
 
 func _apply_spawn() -> void:

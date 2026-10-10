@@ -1,6 +1,8 @@
 [gd_scene format=3]
 
 [ext_resource type="Texture2D" path="res://assets/buildings/home.png" id="1_tex"]
+[ext_resource type="PackedScene" path="res://locations/map_exit.tscn" id="2_exit"]
+[ext_resource type="Script" path="res://locations/spawn_point.gd" id="3_spawn"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_body"]
 size = Vector2(80, 58)
@@ -16,3 +18,15 @@ centered = false
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2(40, 32)
 shape = SubResource("RectangleShape2D_body")
+
+[node name="DoorEnter" parent="." instance=ExtResource("2_exit")]
+position = Vector2(51, 62)
+destination_path = "res://buildings/home_interior.tscn"
+spawn_id = "from_farm"
+exit_size = Vector2(12, 10)
+invisible = true
+
+[node name="SpawnFromHome" type="Marker2D" parent="."]
+position = Vector2(51, 86)
+script = ExtResource("3_spawn")
+spawn_id = "from_home"

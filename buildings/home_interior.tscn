@@ -1,0 +1,75 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://locations/location_info.gd" id="1_loc"]
+[ext_resource type="PackedScene" path="res://player/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://locations/map_exit.tscn" id="3_exit"]
+[ext_resource type="Script" path="res://locations/spawn_point.gd" id="4_spawn"]
+[ext_resource type="Texture2D" path="res://assets/buildings/home_interior2.png" id="5_bg"]
+
+[sub_resource type="RectangleShape2D" id="S_WallTop"]
+size = Vector2(128, 38)
+
+[sub_resource type="RectangleShape2D" id="S_WallLeft"]
+size = Vector2(5, 80)
+
+[sub_resource type="RectangleShape2D" id="S_WallRight"]
+size = Vector2(5, 80)
+
+[sub_resource type="RectangleShape2D" id="S_WallBottomL"]
+size = Vector2(70, 6)
+
+[sub_resource type="RectangleShape2D" id="S_WallBottomR"]
+size = Vector2(34, 6)
+
+[node name="HomeInterior" type="Node2D"]
+script = ExtResource("1_loc")
+display_name = "집"
+day_night_tint = false
+camera_bounds = Rect2(0, 0, 128, 80)
+
+[node name="Darkness" type="Polygon2D" parent="."]
+color = Color(0.07, 0.06, 0.08, 1)
+polygon = PackedVector2Array(-2000, -2000, 2128, -2000, 2128, 2080, -2000, 2080)
+
+[node name="Background" type="Sprite2D" parent="."]
+texture = ExtResource("5_bg")
+centered = false
+
+[node name="Walls" type="StaticBody2D" parent="."]
+collision_layer = 1
+collision_mask = 0
+
+[node name="WallTop" type="CollisionShape2D" parent="Walls"]
+position = Vector2(64, 19)
+shape = SubResource("S_WallTop")
+
+[node name="WallLeft" type="CollisionShape2D" parent="Walls"]
+position = Vector2(2.5, 40)
+shape = SubResource("S_WallLeft")
+
+[node name="WallRight" type="CollisionShape2D" parent="Walls"]
+position = Vector2(125.5, 40)
+shape = SubResource("S_WallRight")
+
+[node name="WallBottomL" type="CollisionShape2D" parent="Walls"]
+position = Vector2(35, 83)
+shape = SubResource("S_WallBottomL")
+
+[node name="WallBottomR" type="CollisionShape2D" parent="Walls"]
+position = Vector2(111, 83)
+shape = SubResource("S_WallBottomR")
+
+[node name="SpawnFromFarm" type="Marker2D" parent="."]
+position = Vector2(82, 58)
+script = ExtResource("4_spawn")
+spawn_id = "from_farm"
+
+[node name="ExitToFarm" parent="." instance=ExtResource("3_exit")]
+position = Vector2(82, 78)
+destination_path = "res://MainFarmSpring.tscn"
+spawn_id = "from_home"
+exit_size = Vector2(24, 4)
+invisible = true
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+position = Vector2(82, 58)

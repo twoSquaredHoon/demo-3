@@ -11,6 +11,10 @@ var current_location_name: String = ""
 ## Set by travel(), consumed once by the arriving location's spawn points.
 var pending_spawn_id: String = ""
 var _traveling: bool = false
+## Player animation state carried across scene changes (facing, frame,
+## progress, flip), so walking into a new map continues the stride instead
+## of restarting it. Written by player.gd on exit, read on the next _ready.
+var player_anim: Dictionary = {}
 
 
 func set_location(location_name: String) -> void:

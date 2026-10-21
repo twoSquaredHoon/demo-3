@@ -82,6 +82,34 @@ func _build_sprite() -> void:
 	# The art replaces the placeholder rectangle.
 	if has_node("Body"):
 		$Body.visible = false
+	_restore_animation()
+
+
+func _exit_tree() -> void:
+	if _sprite == null:
+		return
+	GameState.player_anim = {
+		"facing": _facing,
+		"frame": _sprite.frame,
+		"progress": _sprite.frame_progress,
+		"flip": _sprite.flip_h,
+		"offset_x": _sprite.offset.x,
+		"playing": _sprite.is_playing(),
+	}
+
+
+## Continue the walk cycle from where the previous scene left off.
+func _restore_animation() -> void:
+	var d := GameState.player_anim
+	if d.is_empty():
+		return
+	_facing = d.get("facing", _facing)
+	_sprite.flip_h = d.get("flip", false)
+	_sprite.offset.x = d.get("offset_x", 0.0)
+	_sprite.animation = _facing
+	if d.get("playing", false):
+		_sprite.play(_facing)
+	_sprite.set_frame_and_progress(int(d.get("frame", 0)), float(d.get("progress", 0.0)))
 
 
 func _update_animation(direction: Vector2) -> void:

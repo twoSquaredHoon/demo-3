@@ -11,6 +11,13 @@ extends Node
 ## Leave size at 0 to use the farm TileMap's painted area instead.
 @export var camera_bounds: Rect2 = Rect2()
 
+## Tiles the player can't walk on, per tileset image: texture path ->
+## atlas coords. Any TileMap in the scene painted with these gets solid
+## collision when the scene loads. Add entries here for new blocking tiles.
+const BLOCKING_TILES := {
+	"res://assets/tiles/ground.png": [Vector2i(2, 0), Vector2i(3, 0), Vector2i(2, 1), Vector2i(3, 1)],  # rock
+}
+
 const DayNight := preload("res://locations/day_night.gd")
 
 
@@ -21,6 +28,7 @@ func _ready() -> void:
 		tint.set_script(DayNight)
 		add_child(tint)
 	_apply_camera_limits()
+	_build_tile_collision()
 	GameState.set_location(display_name)
 	call_deferred("_apply_spawn")
 
@@ -35,7 +43,10 @@ func _apply_camera_limits() -> void:
 	if bounds.size == Vector2.ZERO:
 		var map := get_tree().get_first_node_in_group("farm_tilemap") as TileMap
 		if map == null:
-			return
+			var maps := find_children("*", "TileMap", true, false)
+			if maps.is_empty():
+				return
+			map = maps[0] as TileMap
 		var used := map.get_used_rect()
 		var tile := Vector2(map.tile_set.tile_size)
 		var top_left := map.to_global(Vector2(used.position) * tile)
@@ -66,3 +77,44 @@ func _apply_spawn() -> void:
 				cam.reset_smoothing()
 			return
 
+
+
+## One solid 16x16 box per blocking tile (see BLOCKING_TILES), on the same
+## physics layer as walls, so the player can't walk onto rock.
+func _build_tile_collision() -> void:
+	for node in find_children("*", "TileMap", true, false):
+		var map := node as TileMap
+		if map.tile_set == null:
+			continue
+		var blocked_sources := {}
+		for i in map.tile_set.get_source_count():
+			var id := map.tile_set.get_source_id(i)
+			var src := map.tile_set.get_source(id) as TileSetAtlasSource
+			if src == null or src.texture == null:
+				continue
+			if BLOCKING_TILES.has(src.texture.resource_path):
+				blocked_sources[id] = BLOCKING_TILES[src.texture.resource_path]
+		if blocked_sources.is_empty():
+			continue
+		var body := StaticBody2D.new()
+		body.name = "BlockedTiles"
+		body.collision_layer = 1
+		body.collision_mask = 0
+		var tile := Vector2(map.tile_set.tile_size)
+		for layer in map.get_layers_count():
+			for cell in map.get_used_cells(layer):
+				var sid := map.get_cell_source_id(layer, cell)
+				if not blocked_sources.has(sid):
+					continue
+				if not blocked_sources[sid].has(map.get_cell_atlas_coords(layer, cell)):
+					continue
+				var shape := CollisionShape2D.new()
+				var box := RectangleShape2D.new()
+				box.size = tile
+				shape.shape = box
+				shape.position = map.map_to_local(cell)
+				body.add_child(shape)
+		if body.get_child_count() > 0:
+			map.add_child(body)
+		else:
+			body.free()
